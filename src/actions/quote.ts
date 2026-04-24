@@ -1,6 +1,6 @@
 'use server';
 
-import { getRecursiv } from '@/lib/recursiv';
+import { getRecursiv, hasRecursivKey } from '@/lib/recursiv';
 import { getCompanyByTicker, filterFilings, fetchFilingText, type Filing } from '@/lib/edgar';
 import { getOverride } from '@/lib/overrides';
 
@@ -28,11 +28,18 @@ const QUOTE_AGENT_ID = process.env.TICKER_QUOTE_AGENT_ID;
 
 export async function generateQuotes(input: QuoteInput): Promise<QuoteResult> {
   try {
+    if (!hasRecursivKey()) {
+      return {
+        ok: false,
+        error:
+          'RECURSIV_API_KEY is not configured on this deployment. Set it in Coolify/Recursiv env, then redeploy.',
+      };
+    }
     if (!QUOTE_AGENT_ID) {
       return {
         ok: false,
         error:
-          'Quote agent not configured. Set TICKER_QUOTE_AGENT_ID in env. Create a quote drafting agent in the Ticker project on Recursiv.',
+          'Quote agent not configured. Set TICKER_QUOTE_AGENT_ID in env (agent id from the Ticker project on Recursiv).',
       };
     }
 
