@@ -50,9 +50,21 @@ export function FilingSummarizer({
 
   return (
     <div className="grid gap-4 lg:grid-cols-[420px_1fr]">
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)]">
-        <div className="p-4 pb-2 text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">
-          Pick a filing
+      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] self-start lg:sticky lg:top-20">
+        <div className="p-3 border-b border-[var(--border)] space-y-2">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)] px-1">
+            Pick a filing, then summarize
+          </div>
+          <button
+            onClick={submit}
+            disabled={pending || !accession}
+            className="w-full rounded-md bg-accent text-[var(--bg)] font-medium py-2 text-sm disabled:opacity-40 hover:bg-accent-hover transition-colors"
+          >
+            {pending ? 'Summarizing...' : 'Summarize selected filing'}
+          </button>
+          <div className="text-[10px] text-[var(--muted)] mono text-center">
+            Powered by Recursiv
+          </div>
         </div>
         <div className="divide-y divide-[var(--border)] max-h-[600px] overflow-y-auto">
           {filings.map((f) => {
@@ -87,18 +99,6 @@ export function FilingSummarizer({
               </button>
             );
           })}
-        </div>
-        <div className="border-t border-[var(--border)] p-3">
-          <button
-            onClick={submit}
-            disabled={pending || !accession}
-            className="w-full rounded-md bg-accent text-[var(--bg)] font-medium py-2 text-sm disabled:opacity-40 hover:bg-accent-hover transition-colors"
-          >
-            {pending ? 'Summarizing...' : 'Summarize this filing'}
-          </button>
-          <div className="mt-2 text-[10px] text-[var(--muted)] mono text-center">
-            Powered by Recursiv
-          </div>
         </div>
       </div>
 
