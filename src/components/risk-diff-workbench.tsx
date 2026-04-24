@@ -17,6 +17,12 @@ export function RiskDiffWorkbench({
   symbol: string;
   annualReports: AnnualMini[];
 }) {
+  const [currentAccession, setCurrentAccession] = useState(
+    annualReports[0]?.accession ?? ''
+  );
+  const [priorAccession, setPriorAccession] = useState(
+    annualReports[1]?.accession ?? ''
+  );
   const [diff, setDiff] = useState<RiskDiff | null>(null);
   const [sources, setSources] = useState<{
     current: { filingDate: string; url: string };
@@ -29,7 +35,11 @@ export function RiskDiffWorkbench({
     setError(null);
     setDiff(null);
     startTransition(async () => {
-      const res = await diffRiskFactors({ symbol });
+      const res = await diffRiskFactors({
+        symbol,
+        currentAccession,
+        priorAccession,
+      });
       if (!res.ok) {
         setError(res.error);
         return;
@@ -42,39 +52,47 @@ export function RiskDiffWorkbench({
     });
   }
 
-  const currentAR = annualReports[0];
-  const priorAR = annualReports[1];
+  const sameSelected = Boolean(
+    currentAccession && priorAccession && currentAccession === priorAccession
+  );
 
   return (
     <div className="space-y-4">
-      <div className="sticky top-20 z-10 rounded-lg border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-sm p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="text-sm">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)] mb-1">
-            Comparing
-          </div>
-          {currentAR && priorAR ? (
-            <div className="flex items-center gap-3 mono tabular">
-              <a href={currentAR.url} target="_blank" rel="noopener" className="hover:text-accent">
-                10-K · {humanDate(currentAR.filingDate)}
-              </a>
-              <span className="text-[var(--muted)]">vs</span>
-              <a href={priorAR.url} target="_blank" rel="noopener" className="hover:text-accent">
-                10-K · {humanDate(priorAR.filingDate)}
-              </a>
-            </div>
-          ) : (
-            <span className="text-[var(--muted)]">
-              Need at least two 10-Ks on EDGAR for this company.
-            </span>
-          )}
+      <div className="sticky top-20 z-10 rounded-lg border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-sm p-4 space-y-3">
+        <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">
+          Pick two 10-Ks to compare
         </div>
-        <button
-          onClick={submit}
-          disabled={pending || !currentAR || !priorAR}
-          className="rounded-md bg-accent text-[var(--bg)] font-medium px-4 py-2 text-sm disabled:opacity-40 hover:bg-accent-hover transition-colors"
-        >
-          {pending ? 'Analyzing...' : 'Analyze the diff'}
-        </button>
+        <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] items-end">
+          <FilingPicker
+            label="Current 10-K"
+            value={currentAccession}
+            onChange={setCurrentAccession}
+            options={annualReports}
+          />
+          <FilingPicker
+            label="Prior 10-K"
+            value={priorAccession}
+            onChange={setPriorAccession}
+            options={annualReports}
+          />
+          <button
+            onClick={submit}
+            disabled={pending || !currentAccession || !priorAccession || sameSelected}
+            className="rounded-md bg-accent text-[var(--bg)] font-medium px-4 py-2 text-sm disabled:opacity-40 hover:bg-accent-hover transition-colors h-[38px]"
+          >
+            {pending ? 'Analyzing...' : 'Analyze the diff'}
+          </button>
+        </div>
+        {sameSelected && (
+          <div className="text-[11px] text-amber-300">
+            Pick two different 10-Ks.
+          </div>
+        )}
+        {annualReports.length < 2 && (
+          <div className="text-[11px] text-[var(--muted)]">
+            Need at least two 10-Ks for {symbol}. EDGAR has {annualReports.length}.
+          </div>
+        )}
       </div>
 
       {error && (
@@ -169,6 +187,38 @@ export function RiskDiffWorkbench({
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function FilingPicker({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: AnnualMini[];
+}) {
+  return (
+    <div>
+      <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)] mb-1.5">
+        {label}
+      </div>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 py-1.5 text-sm mono"
+      >
+        {options.map((o) => (
+          <option key={o.accession} value={o.accession}>
+            10-K · {humanDate(o.filingDate)}
+          </option>
+        ))}
+        {options.length === 0 && <option value="">none available</option>}
+      </select>
     </div>
   );
 }

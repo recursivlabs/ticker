@@ -5,6 +5,8 @@ import { getCompanyByTicker, filterFilings, fetchFilingText } from '@/lib/edgar'
 
 export type RiskDiffInput = {
   symbol: string;
+  currentAccession?: string;
+  priorAccession?: string;
 };
 
 export type RiskDiff = {
@@ -35,17 +37,49 @@ export type RiskDiffResult =
 const AGENT_ID = process.env.TICKER_RISK_AGENT_ID;
 
 function extractRiskFactors(text: string): string {
-  // Heuristic: find "Item 1A" / "Risk Factors" through "Item 1B" or "Item 2"
-  const normalized = text.replace(/\s+/g, ' ');
-  const startMatch = normalized.match(/Item\s*1A\.?\s*Risk\s*Factors/i);
-  if (!startMatch || startMatch.index === undefined) {
-    return normalized.slice(0, 15000);
+  const normalized = text
+    .replace(/[\x00-\x1F\x7F]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // Try multiple heading patterns. 10-Ks vary wildly in formatting.
+  const startPatterns = [
+    /Item\s*1A\.?\s*[—–-]?\s*Risk\s*Factors/i,
+    /ITEM\s*1A[\.\s]+RISK\s*FACTORS/,
+    /Item\s*1A\b[\s\S]{0,30}?Risk\s*Factors/i,
+    /\bRisk\s*Factors\b/i,
+  ];
+
+  let start = -1;
+  for (const pattern of startPatterns) {
+    const m = normalized.match(pattern);
+    if (m && m.index !== undefined && m.index > 1000) {
+      start = m.index;
+      break;
+    }
   }
-  const start = startMatch.index;
+
+  if (start === -1) {
+    // Last resort: skip the cover page and grab a generous chunk.
+    return normalized.slice(5000, 25000);
+  }
+
   const afterStart = normalized.slice(start);
-  const endMatch = afterStart.match(/Item\s*1B\.|Item\s*2\.|Unresolved\s*Staff\s*Comments/i);
-  const end = endMatch && endMatch.index ? endMatch.index : 20000;
-  return afterStart.slice(0, Math.min(end, 20000));
+  const endPatterns = [
+    /Item\s*1B\b/i,
+    /Item\s*2\.?\s*Properties/i,
+    /Unresolved\s*Staff\s*Comments/i,
+  ];
+  let end = afterStart.length;
+  for (const pattern of endPatterns) {
+    const m = afterStart.match(pattern);
+    if (m && m.index !== undefined && m.index > 2000) {
+      end = m.index;
+      break;
+    }
+  }
+
+  return afterStart.slice(0, Math.min(end, 25000));
 }
 
 export async function diffRiskFactors(input: RiskDiffInput): Promise<RiskDiffResult> {
@@ -60,23 +94,55 @@ export async function diffRiskFactors(input: RiskDiffInput): Promise<RiskDiffRes
     if (annualReports.length < 2) {
       return {
         ok: false,
-        error: `Need two 10-K filings on EDGAR, found ${annualReports.length} for ${input.symbol}`,
+        error: `Need at least two 10-K filings on EDGAR, found ${annualReports.length} for ${input.symbol}`,
       };
     }
 
-    const [currentFiling, priorFiling] = [annualReports[0], annualReports[1]];
+    const currentFiling =
+      (input.currentAccession &&
+        annualReports.find((f) => f.accessionNumber === input.currentAccession)) ||
+      annualReports[0];
+    const priorFiling =
+      (input.priorAccession &&
+        annualReports.find((f) => f.accessionNumber === input.priorAccession)) ||
+      annualReports.find((f) => f.accessionNumber !== currentFiling.accessionNumber) ||
+      annualReports[1];
+
+    if (currentFiling.accessionNumber === priorFiling.accessionNumber) {
+      return { ok: false, error: 'Pick two different 10-Ks to compare' };
+    }
+
     const [currentRaw, priorRaw] = await Promise.all([
-      fetchFilingText(currentFiling).catch(() => ''),
-      fetchFilingText(priorFiling).catch(() => ''),
+      fetchFilingText(currentFiling).catch((e) => `__ERROR__:${e?.message ?? 'fetch failed'}`),
+      fetchFilingText(priorFiling).catch((e) => `__ERROR__:${e?.message ?? 'fetch failed'}`),
     ]);
+
+    if (currentRaw.startsWith('__ERROR__:')) {
+      return { ok: false, error: `Could not fetch current 10-K (${currentFiling.filingDate}): ${currentRaw.slice(10)}` };
+    }
+    if (priorRaw.startsWith('__ERROR__:')) {
+      return { ok: false, error: `Could not fetch prior 10-K (${priorFiling.filingDate}): ${priorRaw.slice(10)}` };
+    }
+    if (currentRaw.length < 2000) {
+      return { ok: false, error: `Current 10-K body returned only ${currentRaw.length} chars after HTML strip; the primary document may be a cover page wrapper.` };
+    }
+    if (priorRaw.length < 2000) {
+      return { ok: false, error: `Prior 10-K body returned only ${priorRaw.length} chars after HTML strip; the primary document may be a cover page wrapper.` };
+    }
 
     const currentRisks = extractRiskFactors(currentRaw).slice(0, 4500);
     const priorRisks = extractRiskFactors(priorRaw).slice(0, 4500);
 
-    if (currentRisks.length < 500 || priorRisks.length < 500) {
+    if (currentRisks.length < 800) {
       return {
         ok: false,
-        error: 'Could not extract Risk Factors sections from both 10-Ks',
+        error: `Risk Factors section not located in current 10-K (extracted ${currentRisks.length} chars). The filing may use non-standard section headings.`,
+      };
+    }
+    if (priorRisks.length < 800) {
+      return {
+        ok: false,
+        error: `Risk Factors section not located in prior 10-K (extracted ${priorRisks.length} chars). The filing may use non-standard section headings.`,
       };
     }
 

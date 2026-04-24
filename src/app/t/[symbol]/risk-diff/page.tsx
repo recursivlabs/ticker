@@ -10,7 +10,7 @@ export default async function RiskDiffPage({ params }: { params: { symbol: strin
   const company = await getCompanyByTicker(symbol).catch(() => null);
   if (!company) notFound();
 
-  const annualReports = filterFilings(company.filings, ['10-K'], 3);
+  const annualReports = filterFilings(company.filings, ['10-K'], 8);
 
   return (
     <div className="space-y-5 py-4">
