@@ -5,12 +5,6 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
-type Tool = {
-  href: string;
-  label: string;
-  group: 'Overview' | 'Draft' | 'Prepare' | 'Analyze';
-};
-
 export function WorkbenchSidebar({ symbol, companyName }: { symbol: string; companyName: string }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -29,17 +23,14 @@ export function WorkbenchSidebar({ symbol, companyName }: { symbol: string; comp
     };
   }, [open]);
 
-  const tools: Tool[] = [
-    { href: base, label: 'Overview', group: 'Overview' },
-    { href: `${base}/quote`, label: 'CEO Quote', group: 'Draft' },
-    { href: `${base}/release`, label: 'Press Release', group: 'Draft' },
-    { href: `${base}/script`, label: 'Earnings Script', group: 'Draft' },
-    { href: `${base}/qa`, label: 'Q&A Prep', group: 'Prepare' },
-    { href: `${base}/summarize`, label: 'Filing Summarizer', group: 'Analyze' },
-    { href: `${base}/risk-diff`, label: 'Risk Factor Diff', group: 'Analyze' },
+  const agents: { href: string; label: string }[] = [
+    { href: `${base}/quote`, label: 'CEO Quote' },
+    { href: `${base}/release`, label: 'Press Release' },
+    { href: `${base}/script`, label: 'Earnings Script' },
+    { href: `${base}/qa`, label: 'Q&A Prep' },
+    { href: `${base}/summarize`, label: 'Filing Summarizer' },
+    { href: `${base}/risk-diff`, label: 'Risk Factor Diff' },
   ];
-
-  const groups: Tool['group'][] = ['Overview', 'Draft', 'Prepare', 'Analyze'];
 
   const sidebarContent = (
     <>
@@ -63,38 +54,47 @@ export function WorkbenchSidebar({ symbol, companyName }: { symbol: string; comp
       </div>
 
       <nav className="flex-1 overflow-y-auto p-3 space-y-4">
-        {groups.map((group) => {
-          const groupTools = tools.filter((t) => t.group === group);
-          return (
-            <div key={group}>
-              <div className="px-3 pb-1.5 text-[10px] font-mono uppercase tracking-wider text-[var(--muted-soft)]">
-                {group}
-              </div>
-              <div className="space-y-0.5">
-                {groupTools.map((tool) => {
-                  const isActive =
-                    tool.href === base
-                      ? pathname === base
-                      : pathname === tool.href || pathname.startsWith(tool.href + '/');
-                  return (
-                    <Link
-                      key={tool.href}
-                      href={tool.href}
-                      className={cn(
-                        'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors',
-                        isActive
-                          ? 'bg-[var(--accent-soft)] text-[var(--accent-ink)] font-medium'
-                          : 'text-[var(--fg-soft)] hover:bg-[var(--border-soft)]'
-                      )}
-                    >
-                      {tool.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+        <div className="space-y-0.5">
+          <Link
+            href={base}
+            className={cn(
+              'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors',
+              pathname === base
+                ? 'bg-[var(--accent-soft)] text-[var(--accent-ink)] font-medium'
+                : 'text-[var(--fg-soft)] hover:bg-[var(--border-soft)]'
+            )}
+          >
+            Overview
+          </Link>
+        </div>
+
+        <div>
+          <div className="px-3 pb-1.5 flex items-center gap-2">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent pulse-dot" />
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted-soft)]">
+              IR Agents
+            </span>
+          </div>
+          <div className="space-y-0.5">
+            {agents.map((agent) => {
+              const isActive = pathname === agent.href || pathname.startsWith(agent.href + '/');
+              return (
+                <Link
+                  key={agent.href}
+                  href={agent.href}
+                  className={cn(
+                    'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors',
+                    isActive
+                      ? 'bg-[var(--accent-soft)] text-[var(--accent-ink)] font-medium'
+                      : 'text-[var(--fg-soft)] hover:bg-[var(--border-soft)]'
+                  )}
+                >
+                  {agent.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </nav>
 
       <div className="border-t border-[var(--border)] p-4">
