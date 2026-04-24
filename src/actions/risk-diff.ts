@@ -70,8 +70,8 @@ export async function diffRiskFactors(input: RiskDiffInput): Promise<RiskDiffRes
       fetchFilingText(priorFiling).catch(() => ''),
     ]);
 
-    const currentRisks = extractRiskFactors(currentRaw).slice(0, 10000);
-    const priorRisks = extractRiskFactors(priorRaw).slice(0, 10000);
+    const currentRisks = extractRiskFactors(currentRaw).slice(0, 4500);
+    const priorRisks = extractRiskFactors(priorRaw).slice(0, 4500);
 
     if (currentRisks.length < 500 || priorRisks.length < 500) {
       return {

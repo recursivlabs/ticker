@@ -64,10 +64,10 @@ export async function draftRelease(input: ReleaseInput): Promise<ReleaseResult> 
           return {
             filing: f,
             text: raw
-              .replace(/[ -]/g, ' ')
+              .replace(/[\x00-\x1F\x7F]/g, ' ')
               .replace(/\s+/g, ' ')
               .trim()
-              .slice(0, 2500),
+              .slice(0, 1800),
           };
         } catch {
           return { filing: f, text: '' };

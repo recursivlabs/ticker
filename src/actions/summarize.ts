@@ -41,10 +41,10 @@ export async function summarizeFiling(input: SummarizeInput): Promise<SummarizeR
 
     const raw = await fetchFilingText(filing);
     const text = raw
-      .replace(/[ -]/g, ' ')
+      .replace(/[\x00-\x1F\x7F]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .slice(0, 12000);
+      .slice(0, 6000);
 
     const userMessage = `Summarize this ${filing.form} from ${company.name} (${input.symbol}), filed ${filing.filingDate}.
 
