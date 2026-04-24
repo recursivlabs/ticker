@@ -74,8 +74,8 @@ export function ReleaseWorkbench({
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1.4fr]">
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)]">
+    <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1.4fr] lg:items-start">
+      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] lg:sticky lg:top-20">
         <div className="p-4 pb-2 flex items-center justify-between">
           <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">
             Prior releases ({filings.length})
@@ -123,7 +123,7 @@ export function ReleaseWorkbench({
         </div>
       </div>
 
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 space-y-4">
+      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 space-y-4 lg:sticky lg:top-20">
         <div>
           <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)] mb-2">
             What&rsquo;s the release about?

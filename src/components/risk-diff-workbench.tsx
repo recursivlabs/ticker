@@ -47,7 +47,7 @@ export function RiskDiffWorkbench({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div className="sticky top-20 z-10 rounded-lg border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-sm p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="text-sm">
           <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)] mb-1">
             Comparing

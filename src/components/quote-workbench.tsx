@@ -67,9 +67,9 @@ export function QuoteWorkbench({
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1.2fr]">
+    <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1.2fr] lg:items-start">
       {/* Left: prior quotes selector */}
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)]">
+      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] lg:sticky lg:top-20">
         <div className="p-4 pb-2 flex items-center justify-between">
           <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">
             Prior filings ({filings.length})
@@ -122,7 +122,7 @@ export function QuoteWorkbench({
       </div>
 
       {/* Middle: inputs */}
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 space-y-4">
+      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 space-y-4 lg:sticky lg:top-20">
         <div>
           <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)] mb-2">
             Topic
