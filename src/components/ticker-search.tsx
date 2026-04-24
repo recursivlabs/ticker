@@ -67,7 +67,7 @@ export function TickerSearch({ size = 'lg' }: { size?: 'lg' | 'sm' }) {
       <div
         className={cn(
           'flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] focus-within:border-accent/60 focus-within:ring-4 focus-within:ring-accent/10 transition-all',
-          isLarge ? 'px-5 py-4 shadow-md' : 'px-3 py-2'
+          isLarge ? 'px-4 h-[64px] shadow-md' : 'px-3 h-10'
         )}
       >
         <svg
@@ -113,10 +113,16 @@ export function TickerSearch({ size = 'lg' }: { size?: 'lg' | 'sm' }) {
           spellCheck={false}
           autoComplete="off"
         />
-        {isLarge && query.trim() && (
+        {isLarge && (
           <button
             onClick={() => submit(suggestions[cursor]?.ticker ?? query)}
-            className="rounded-lg bg-accent text-white font-medium px-4 py-2 text-sm hover:bg-accent-hover transition-colors"
+            disabled={!query.trim()}
+            className={cn(
+              'rounded-lg font-medium px-4 h-10 text-sm transition-all shrink-0',
+              query.trim()
+                ? 'bg-accent text-white hover:bg-accent-hover'
+                : 'bg-[var(--border-soft)] text-[var(--muted-soft)] cursor-not-allowed'
+            )}
           >
             Enter →
           </button>
