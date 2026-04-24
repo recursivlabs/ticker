@@ -102,11 +102,11 @@ export default async function CompanyProfile({ params }: { params: { symbol: str
           </div>
           <div className="mt-3 grid gap-2">
             <ActionLink href={`/t/${symbol}/quote`} badge="Draft" title="CEO Quote Generator" />
+            <ActionLink href={`/t/${symbol}/release`} badge="Draft" title="Press Release Drafter" />
+            <ActionLink href={`/t/${symbol}/summarize`} badge="Read" title="Filing Summarizer" />
+            <ActionLink href={`/t/${symbol}/risk-diff`} badge="Analyze" title="Risk Factor Diff" />
             <ActionLink href={`/t/${symbol}/consensus`} badge="Analyze" title="Consensus Delta" />
             <ActionLink href={`/t/${symbol}/peers`} badge="Benchmark" title="Peer Benchmark" />
-            <div className="rounded-md border border-dashed border-[var(--border)] px-3 py-2 text-xs text-[var(--muted)]">
-              <span className="mono">Earnings Script</span> · coming soon
-            </div>
           </div>
         </div>
       </div>
@@ -131,21 +131,31 @@ export default async function CompanyProfile({ params }: { params: { symbol: str
             <div className="p-4 text-sm text-[var(--muted)]">No recent 8-K filings.</div>
           )}
           {pressReleases.map((f) => (
-            <a
+            <div
               key={f.accessionNumber}
-              href={f.url}
-              target="_blank"
-              rel="noopener"
-              className="flex items-center justify-between px-4 py-3 hover:bg-[var(--card-elevated)] transition-colors text-sm"
+              className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-[var(--card-elevated)] transition-colors text-sm group"
             >
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="truncate">{f.primaryDocDescription || f.primaryDocument}</div>
                 <div className="text-xs text-[var(--muted)] mono">{f.form} · Accession {f.accessionNumber}</div>
               </div>
-              <div className="text-xs mono tabular text-[var(--muted)] ml-4 shrink-0">
-                {humanDate(f.filingDate)}
+              <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  href={`/t/${symbol}/summarize?accession=${f.accessionNumber}`}
+                  className="text-[11px] rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 py-1 opacity-0 group-hover:opacity-100 hover:border-accent/40 hover:text-accent transition-all"
+                >
+                  Summarize →
+                </Link>
+                <a
+                  href={f.url}
+                  target="_blank"
+                  rel="noopener"
+                  className="text-xs mono tabular text-[var(--muted)] hover:text-[var(--fg)]"
+                >
+                  {humanDate(f.filingDate)}
+                </a>
               </div>
-            </a>
+            </div>
           ))}
         </div>
       </div>

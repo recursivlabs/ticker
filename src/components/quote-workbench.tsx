@@ -172,7 +172,7 @@ export function QuoteWorkbench({
         )}
 
         <div className="text-[10px] text-[var(--muted)] mono">
-          Powered by Claude · sources cited on every draft
+          Powered by Recursiv · sources cited on every draft
         </div>
       </div>
 

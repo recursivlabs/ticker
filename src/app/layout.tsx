@@ -8,9 +8,27 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
 export const metadata: Metadata = {
-  title: 'Ticker · AI workspace for Investor Relations',
+  metadataBase: new URL('https://ticker.on.recursiv.io'),
+  title: {
+    default: 'Ticker · AI workspace for Investor Relations',
+    template: '%s · Ticker',
+  },
   description:
     'Draft CEO quotes, track consensus, benchmark peers, and ship earnings materials faster. Built on EDGAR, FactSet-ready.',
+  openGraph: {
+    title: 'Ticker · The AI workspace for Investor Relations',
+    description:
+      'Draft CEO quotes, track consensus, benchmark peers. Built on EDGAR, FactSet-ready. Powered by Recursiv.',
+    url: 'https://ticker.on.recursiv.io',
+    siteName: 'Ticker',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Ticker · The AI workspace for Investor Relations',
+    description:
+      'Draft CEO quotes, track consensus, benchmark peers. Built on EDGAR, FactSet-ready. Powered by Recursiv.',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
