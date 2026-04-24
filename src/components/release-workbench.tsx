@@ -94,7 +94,7 @@ export function ReleaseWorkbench({
                 onClick={() => toggle(f.accession)}
                 className={cn(
                   'w-full text-left px-4 py-3 transition-colors',
-                  isSelected ? 'bg-accent-subtle' : 'hover:bg-[var(--card-elevated)]'
+                  isSelected ? 'bg-[var(--accent-soft)]' : 'hover:bg-[var(--border-soft)]'
                 )}
               >
                 <div className="flex items-start gap-2">
@@ -145,7 +145,7 @@ export function ReleaseWorkbench({
         </button>
 
         {error && (
-          <div className="rounded-md border border-rose-500/20 bg-rose-500/5 p-3 text-xs text-rose-300">
+          <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-xs text-rose-600">
             {error}
           </div>
         )}

@@ -74,8 +74,8 @@ export default async function PeersPage({ params }: { params: { symbol: string }
       </div>
 
       {!isDemo && (
-        <div className="rounded-lg border border-amber-400/20 bg-amber-400/5 p-4 text-sm">
-          <div className="font-medium text-amber-300 mb-1">FactSet required for live peer metrics</div>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
+          <div className="font-medium text-amber-700 mb-1">FactSet required for live peer metrics</div>
           <div className="text-xs text-[var(--muted)]">
             Showing ticker list from EDGAR. Connect FactSet to populate revenue, EPS, EV/EBITDA, and analyst
             price targets across the full peer set.
@@ -101,7 +101,7 @@ export default async function PeersPage({ params }: { params: { symbol: string }
               const isSubject = row.ticker === symbol;
               const m = row.metrics;
               return (
-                <tr key={row.ticker} className={isSubject ? 'bg-accent-subtle' : ''}>
+                <tr key={row.ticker} className={isSubject ? 'bg-[var(--accent-soft)]' : ''}>
                   <td className="px-4 py-2.5">
                     <Link href={`/t/${row.ticker}`} className="mono font-semibold hover:text-accent">
                       {row.ticker}

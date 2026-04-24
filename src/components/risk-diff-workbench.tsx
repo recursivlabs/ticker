@@ -84,7 +84,7 @@ export function RiskDiffWorkbench({
           </button>
         </div>
         {sameSelected && (
-          <div className="text-[11px] text-amber-300">
+          <div className="text-[11px] text-amber-700">
             Pick two different 10-Ks.
           </div>
         )}
@@ -96,7 +96,7 @@ export function RiskDiffWorkbench({
       </div>
 
       {error && (
-        <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-4 text-sm text-rose-300">
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-600">
           {error}
         </div>
       )}
@@ -125,8 +125,8 @@ export function RiskDiffWorkbench({
           </div>
 
           {diff.materialityRead && (
-            <div className="rounded-lg border border-amber-400/20 bg-amber-400/5 p-4">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-amber-300 mb-1">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-amber-700 mb-1">
                 Materiality read
               </div>
               <p className="text-sm text-[var(--fg)] leading-relaxed">{diff.materialityRead}</p>
@@ -159,7 +159,7 @@ export function RiskDiffWorkbench({
                         </div>
                         <div className="italic text-[var(--muted)]">{r.prior}</div>
                       </div>
-                      <div className="rounded border border-accent/30 bg-accent-subtle p-3">
+                      <div className="rounded border border-[var(--accent-ink)]/30 bg-[var(--accent-soft)] p-3">
                         <div className="mono uppercase tracking-wider text-accent mb-1">
                           Current
                         </div>
@@ -236,9 +236,9 @@ function Stat({
     tone === 'add'
       ? 'text-accent'
       : tone === 'remove'
-        ? 'text-rose-400'
+        ? 'text-rose-600'
         : tone === 'reword'
-          ? 'text-amber-400'
+          ? 'text-amber-600'
           : 'text-[var(--muted)]';
   return (
     <div>

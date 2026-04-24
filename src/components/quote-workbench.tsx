@@ -90,7 +90,7 @@ export function QuoteWorkbench({
                 onClick={() => toggle(f.accessionNumber)}
                 className={cn(
                   'w-full text-left px-4 py-3 transition-colors',
-                  isSelected ? 'bg-accent-subtle' : 'hover:bg-[var(--card-elevated)]'
+                  isSelected ? 'bg-[var(--accent-soft)]' : 'hover:bg-[var(--border-soft)]'
                 )}
               >
                 <div className="flex items-start gap-2">
@@ -147,7 +147,7 @@ export function QuoteWorkbench({
                 className={cn(
                   'rounded-md border px-3 py-1.5 text-xs transition-colors text-left',
                   tonality === t.key
-                    ? 'border-accent bg-accent-subtle text-accent'
+                    ? 'border-accent bg-[var(--accent-soft)] text-accent'
                     : 'border-[var(--border)] hover:border-accent/40'
                 )}
               >
@@ -166,7 +166,7 @@ export function QuoteWorkbench({
         </button>
 
         {error && (
-          <div className="rounded-md border border-rose-500/20 bg-rose-500/5 p-3 text-xs text-rose-300">
+          <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-xs text-rose-600">
             {error}
           </div>
         )}

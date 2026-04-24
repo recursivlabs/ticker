@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 type Suggestion = { ticker: string; title: string };
 
-export function TickerSearch({ compact = false }: { compact?: boolean }) {
+export function TickerSearch({ size = 'lg' }: { size?: 'lg' | 'sm' }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -40,31 +40,43 @@ export function TickerSearch({ compact = false }: { compact?: boolean }) {
   }, [query, runSearch]);
 
   useEffect(() => {
+    if (size === 'lg') inputRef.current?.focus();
     function onKey(e: KeyboardEvent) {
-      if ((e.key === '/' || e.key === 'k') && (e.metaKey || e.ctrlKey || e.key === '/')) {
-        if (e.key === '/' && !(e.metaKey || e.ctrlKey)) {
-          if (document.activeElement instanceof HTMLInputElement) return;
-          if (document.activeElement instanceof HTMLTextAreaElement) return;
-        }
+      if (e.key === '/' && !(e.metaKey || e.ctrlKey)) {
+        if (document.activeElement instanceof HTMLInputElement) return;
+        if (document.activeElement instanceof HTMLTextAreaElement) return;
         e.preventDefault();
         inputRef.current?.focus();
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [size]);
 
   function submit(ticker: string) {
     if (!ticker.trim()) return;
-    router.push(`/t/${ticker.toUpperCase().trim()}`);
+    router.push(`/t/${ticker.toUpperCase().trim()}/connect`);
     setOpen(false);
     setQuery('');
   }
 
+  const isLarge = size === 'lg';
+
   return (
     <div className="relative">
-      <div className="flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--card)] px-3 py-2 focus-within:border-accent/60 transition-colors">
-        <svg className="h-4 w-4 text-[var(--muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <div
+        className={cn(
+          'flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] focus-within:border-accent/60 focus-within:ring-4 focus-within:ring-accent/10 transition-all',
+          isLarge ? 'px-5 py-4 shadow-md' : 'px-3 py-2'
+        )}
+      >
+        <svg
+          className={cn('text-[var(--muted-soft)]', isLarge ? 'h-5 w-5' : 'h-4 w-4')}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <circle cx="11" cy="11" r="7" />
           <path d="m20 20-3.5-3.5" />
         </svg>
@@ -93,29 +105,34 @@ export function TickerSearch({ compact = false }: { compact?: boolean }) {
               inputRef.current?.blur();
             }
           }}
-          placeholder={compact ? 'Ticker or company...' : 'Enter a ticker (AAPL, AN, MSFT, TSLA)'}
+          placeholder={isLarge ? 'Your company ticker' : 'Ticker or company'}
           className={cn(
-            'flex-1 bg-transparent outline-none placeholder:text-[var(--muted)]',
-            compact ? 'text-sm' : 'text-base'
+            'flex-1 bg-transparent outline-none placeholder:text-[var(--muted-soft)]',
+            isLarge ? 'text-lg' : 'text-sm'
           )}
           spellCheck={false}
           autoComplete="off"
         />
-        <kbd className="hidden md:inline-block rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)] font-mono">
-          /
-        </kbd>
+        {isLarge && query.trim() && (
+          <button
+            onClick={() => submit(suggestions[cursor]?.ticker ?? query)}
+            className="rounded-lg bg-accent text-white font-medium px-4 py-2 text-sm hover:bg-accent-hover transition-colors"
+          >
+            Enter →
+          </button>
+        )}
       </div>
 
       {open && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-1 rounded-md border border-[var(--border)] bg-[var(--card)] shadow-xl overflow-hidden z-50">
+        <div className="absolute left-0 right-0 top-full mt-2 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-lg overflow-hidden z-50">
           {suggestions.map((s, i) => (
             <button
               key={s.ticker}
               onMouseDown={() => submit(s.ticker)}
               onMouseEnter={() => setCursor(i)}
               className={cn(
-                'w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors',
-                cursor === i ? 'bg-accent-subtle text-accent' : 'hover:bg-neutral-900'
+                'w-full flex items-center justify-between px-4 py-2.5 text-sm text-left transition-colors',
+                cursor === i ? 'bg-[var(--accent-soft)] text-[var(--accent-ink)]' : 'hover:bg-[var(--border-soft)]'
               )}
             >
               <span className="font-mono font-semibold">{s.ticker}</span>

@@ -44,18 +44,18 @@ export default async function ConsensusPage({ params }: { params: { symbol: stri
       </div>
 
       {/* Connect FactSet banner */}
-      <div className="rounded-lg border border-amber-400/20 bg-amber-400/5 p-4">
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3 text-sm">
             <span className="inline-block h-2 w-2 rounded-full bg-amber-400 pulse-dot" />
             <div>
-              <div className="font-medium text-amber-300">FactSet entitlements required for live data</div>
+              <div className="font-medium text-amber-700">FactSet entitlements required for live data</div>
               <div className="text-xs text-[var(--muted)] mt-0.5">
                 Analyst-by-analyst consensus is gated by FactSet. Showing sample {symbol} data below.
               </div>
             </div>
           </div>
-          <button className="rounded-md border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-xs text-amber-300 hover:bg-amber-400/20">
+          <button className="rounded-md border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-xs text-amber-700 hover:bg-amber-200">
             Connect FactSet
           </button>
         </div>
@@ -134,7 +134,7 @@ export default async function ConsensusPage({ params }: { params: { symbol: stri
                   <td
                     className={
                       'px-4 py-2.5 text-right mono tabular ' +
-                      (pos ? 'text-accent' : neg ? 'text-rose-400' : 'text-[var(--muted)]')
+                      (pos ? 'text-accent' : neg ? 'text-rose-600' : 'text-[var(--muted)]')
                     }
                   >
                     {row.delta === 0 ? '-' : `${pos ? '+' : ''}${row.delta.toFixed(2)}`}
@@ -156,7 +156,7 @@ export default async function ConsensusPage({ params }: { params: { symbol: stri
                 <td colSpan={2} className="px-4 py-2.5 font-medium">Consensus</td>
                 <td className="px-4 py-2.5 text-right mono tabular">$2.14</td>
                 <td className="px-4 py-2.5 text-right mono tabular">$2.11</td>
-                <td className="px-4 py-2.5 text-right mono tabular text-rose-400">-0.03</td>
+                <td className="px-4 py-2.5 text-right mono tabular text-rose-600">-0.03</td>
               </tr>
             </tfoot>
           )}
