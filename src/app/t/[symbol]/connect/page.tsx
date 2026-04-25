@@ -4,23 +4,22 @@ import { getCompanyByTicker } from '@/lib/edgar';
 
 export const revalidate = 3600;
 
-const PROVIDERS = [
+const DATA_SOURCES = [
+  { name: 'FactSet', description: 'Consensus, transcripts, fundamentals, ownership' },
+  { name: 'S&P Global', description: 'Capital IQ fundamentals and ratings' },
+  { name: 'Nasdaq IR Intelligence', description: 'Shareholder targeting, peer surveillance' },
+  { name: 'Q4', description: 'IR website, investor CRM, events' },
+];
+
+const OUTPUTS = [
   {
-    name: 'FactSet',
-    description: 'Consensus, transcripts, fundamentals, ownership',
+    name: 'OneDrive Excel',
+    description: 'Where your ThinkCell-bound deck lives. Updates flow here.',
   },
-  {
-    name: 'S&P Global',
-    description: 'Capital IQ fundamentals and ratings',
-  },
-  {
-    name: 'Nasdaq IR Intelligence',
-    description: 'Shareholder targeting and peer surveillance',
-  },
-  {
-    name: 'Q4',
-    description: 'IR website, investor CRM, events',
-  },
+  { name: 'SharePoint', description: 'Shared workbooks for the IR team' },
+  { name: 'Google Sheets', description: 'For Google Workspace teams' },
+  { name: 'Outlook', description: 'Email finished drafts to colleagues' },
+  { name: 'Microsoft Teams', description: 'Notify when peer 8-Ks drop' },
 ];
 
 export default async function ConnectPage({ params }: { params: { symbol: string } }) {
@@ -29,7 +28,7 @@ export default async function ConnectPage({ params }: { params: { symbol: string
   if (!company) notFound();
 
   return (
-    <div className="max-w-2xl mx-auto py-8 fade-in">
+    <div className="max-w-3xl mx-auto py-6 fade-in">
       <div className="flex items-center justify-center gap-2 mb-10 text-xs text-[var(--muted-soft)]">
         <Step n={1} done label="Ticker" />
         <Line />
@@ -43,28 +42,37 @@ export default async function ConnectPage({ params }: { params: { symbol: string
           Connect your tools
         </h1>
         <p className="text-base text-[var(--muted)] max-w-md mx-auto">
-          Bring your existing entitlements so the agents work on your real data.
+          Data flows in. Work flows out. Both sides connect to tools you already use.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] divide-y divide-[var(--border)] overflow-hidden shadow-sm">
-        {PROVIDERS.map((p) => (
-          <div
-            key={p.name}
-            className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--border-soft)]/40 transition-colors"
-          >
-            <div className="min-w-0">
-              <div className="text-base font-medium text-[var(--fg)]">{p.name}</div>
-              <div className="text-sm text-[var(--muted)] truncate">{p.description}</div>
-            </div>
-            <button
-              disabled
-              className="shrink-0 rounded-lg bg-[var(--border-soft)] px-4 h-9 text-sm text-[var(--muted-soft)] font-medium cursor-not-allowed"
-            >
-              Soon
-            </button>
+      <div className="grid gap-5 md:grid-cols-2">
+        <Section
+          icon="↓"
+          title="Data sources"
+          subtitle="Where context comes in"
+          items={DATA_SOURCES}
+        />
+        <Section
+          icon="↑"
+          title="Output destinations"
+          subtitle="Where work flows out, live"
+          items={OUTPUTS}
+        />
+      </div>
+
+      <div className="mt-8 rounded-2xl border border-[var(--border)] bg-[var(--accent-soft)] p-5">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-white shrink-0 mono text-sm">
+            i
+          </span>
+          <div className="text-sm text-[var(--fg-soft)] leading-relaxed">
+            <span className="font-medium text-[var(--fg)]">Zero-touch ThinkCell.</span>{' '}
+            Connect OneDrive once. Every agent run updates a designated Excel file. Your
+            ThinkCell-bound PowerPoint deck refreshes the next time you open it. No copy-paste, no
+            re-rendering charts.
           </div>
-        ))}
+        </div>
       </div>
 
       <div className="mt-10 flex flex-col items-center gap-3">
@@ -77,6 +85,51 @@ export default async function ConnectPage({ params }: { params: { symbol: string
         <p className="text-xs text-[var(--muted-soft)]">
           You can connect tools anytime from the sidebar.
         </p>
+      </div>
+    </div>
+  );
+}
+
+function Section({
+  icon,
+  title,
+  subtitle,
+  items,
+}: {
+  icon: string;
+  title: string;
+  subtitle: string;
+  items: { name: string; description: string }[];
+}) {
+  return (
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden">
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border)] bg-[var(--border-soft)]/40">
+        <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-[var(--accent-soft)] text-[var(--accent-ink)] text-xs font-semibold">
+          {icon}
+        </span>
+        <div>
+          <div className="text-sm font-medium text-[var(--fg)]">{title}</div>
+          <div className="text-[11px] text-[var(--muted)]">{subtitle}</div>
+        </div>
+      </div>
+      <div className="divide-y divide-[var(--border)]">
+        {items.map((p) => (
+          <div
+            key={p.name}
+            className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-[var(--border-soft)]/40 transition-colors"
+          >
+            <div className="min-w-0">
+              <div className="text-sm font-medium text-[var(--fg)] truncate">{p.name}</div>
+              <div className="text-xs text-[var(--muted)] truncate">{p.description}</div>
+            </div>
+            <button
+              disabled
+              className="shrink-0 rounded-md bg-[var(--border-soft)] px-3 h-8 text-xs text-[var(--muted-soft)] font-medium cursor-not-allowed"
+            >
+              Soon
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
