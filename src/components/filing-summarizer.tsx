@@ -2,6 +2,15 @@
 
 import { useState, useTransition } from 'react';
 import { summarizeFiling, type FilingSummary } from '@/actions/summarize';
+import { LastMileDelivery } from '@/components/last-mile';
+import {
+  AgentCard,
+  ErrorBox,
+  Field,
+  LoadingBox,
+  PoweredBy,
+  PrimaryButton,
+} from '@/components/agent-ui';
 import { cn } from '@/lib/utils';
 
 type FilingMini = {
@@ -46,118 +55,99 @@ export function FilingSummarizer({
     });
   }
 
-  const selected = filings.find((f) => f.accession === accession);
+  function copyAll() {
+    if (!summary) return;
+    const text = [
+      summary.headline,
+      '',
+      summary.tldr,
+      '',
+      'Material events:',
+      ...summary.materialEvents.map((m) => `· ${m}`),
+      '',
+      'Numbers:',
+      ...summary.numbers.map((m) => `· ${m}`),
+      '',
+      'Forward-looking:',
+      ...summary.forwardLooking.map((m) => `· ${m}`),
+    ].join('\n');
+    navigator.clipboard.writeText(text);
+  }
+
+  const selectedFiling = filings.find((f) => f.accession === accession);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[420px_1fr]">
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] self-start lg:sticky lg:top-20">
-        <div className="p-3 border-b border-[var(--border)] space-y-2">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)] px-1">
-            Pick a filing, then summarize
-          </div>
-          <button
-            onClick={submit}
-            disabled={pending || !accession}
-            className="w-full rounded-md bg-accent text-[var(--bg)] font-medium py-2 text-sm disabled:opacity-40 hover:bg-accent-hover transition-colors"
+    <div className="space-y-6">
+      <AgentCard>
+        <Field label="Filing to summarize" hint={`${filings.length} recent filings`}>
+          <select
+            value={accession}
+            onChange={(e) => setAccession(e.target.value)}
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-11 text-sm outline-none focus:border-accent/60 focus:ring-4 focus:ring-accent/10 transition-all"
           >
-            {pending ? 'Summarizing' : 'Summarize'}
-          </button>
-          <div className="text-[10px] text-[var(--muted)] mono text-center">
-            Powered by Recursiv
-          </div>
-        </div>
-        <div className="divide-y divide-[var(--border)] max-h-[600px] overflow-y-auto">
-          {filings.map((f) => {
-            const isSelected = accession === f.accession;
-            return (
-              <button
-                key={f.accession}
-                onClick={() => setAccession(f.accession)}
-                className={cn(
-                  'w-full text-left px-4 py-3 transition-colors',
-                  isSelected ? 'bg-[var(--accent-soft)]' : 'hover:bg-[var(--border-soft)]'
-                )}
-              >
-                <div className="flex items-start gap-2">
-                  <span
-                    className={cn(
-                      'mt-0.5 text-[10px] mono font-semibold rounded px-1.5 py-0.5 shrink-0',
-                      f.form === '10-K'
-                        ? 'bg-[var(--accent-soft)] text-accent'
-                        : f.form === '10-Q'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-[var(--border-soft)] text-[var(--muted)]'
-                    )}
-                  >
-                    {f.form}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm truncate">{f.description}</div>
-                    <div className="text-[11px] text-[var(--muted)] mono">{f.filingDateDisplay}</div>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+            {filings.map((f) => (
+              <option key={f.accession} value={f.accession}>
+                {f.form} · {f.filingDateDisplay} · {f.description.slice(0, 60)}
+              </option>
+            ))}
+          </select>
+          {selectedFiling && (
+            <a
+              href={selectedFiling.url}
+              target="_blank"
+              rel="noopener"
+              className="mt-2 inline-block text-xs text-[var(--muted)] hover:text-[var(--accent-ink)]"
+            >
+              View original on EDGAR ↗
+            </a>
+          )}
+        </Field>
 
-      <div className="space-y-3">
-        {!summary && !pending && !error && (
-          <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--card)]/50 p-6 text-center text-sm text-[var(--muted)]">
-            {selected ? (
-              <>Pick a filing and hit Summarize. Result will show headline, material events, numbers, forward-looking statements, and risk changes.</>
-            ) : (
-              <>No filings available.</>
-            )}
-          </div>
-        )}
+        <PrimaryButton onClick={submit} disabled={pending || !accession}>
+          {pending ? 'Summarizing' : 'Summarize'}
+        </PrimaryButton>
 
-        {pending && (
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-6 text-sm text-[var(--muted)] flex items-center gap-3">
-            <span className="inline-block h-2 w-2 rounded-full bg-accent pulse-dot" />
-            Reading filing and building briefing...
-          </div>
-        )}
+        <PoweredBy text="Filing Summarizer agent · structured IR briefing" />
+      </AgentCard>
 
-        {error && (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-600">
-            {error}
-          </div>
-        )}
+      {error && <ErrorBox error={error} />}
+      {pending && <LoadingBox label="Filing Summarizer is reading the document and building your briefing" />}
 
-        {summary && source && (
-          <>
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-5 space-y-4">
-              <div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)] mb-1">
-                  Headline
-                </div>
-                <h2 className="text-lg font-semibold leading-snug">{summary.headline}</h2>
+      {summary && source && (
+        <>
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-5 space-y-4">
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted-soft)] mb-1.5">
+                Headline
               </div>
-              <div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)] mb-1">
-                  TL;DR
-                </div>
-                <p className="text-sm leading-relaxed">{summary.tldr}</p>
+              <h2 className="text-lg font-semibold leading-snug text-[var(--fg)]">
+                {summary.headline}
+              </h2>
+            </div>
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted-soft)] mb-1.5">
+                TL;DR
               </div>
+              <p className="text-sm leading-relaxed text-[var(--fg-soft)]">{summary.tldr}</p>
             </div>
+          </div>
 
-            <Section title="Material events" items={summary.materialEvents} />
-            <Section title="Numbers" items={summary.numbers} mono />
-            <Section title="Forward-looking" items={summary.forwardLooking} />
-            <Section title="Risk changes" items={summary.riskChanges} />
-            <Section title="Next steps for your IR team" items={summary.nextSteps} accent />
+          <Section title="Material events" items={summary.materialEvents} />
+          <Section title="Numbers" items={summary.numbers} mono />
+          <Section title="Forward-looking" items={summary.forwardLooking} />
+          <Section title="Risk changes" items={summary.riskChanges} />
+          <Section title="Next steps for your IR team" items={summary.nextSteps} accent />
 
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--card)]/50 p-3 text-xs text-[var(--muted)]">
-              <span className="mono">Source:</span>{' '}
-              <a href={source.url} target="_blank" rel="noopener" className="hover:text-accent">
-                {source.form} · {source.filingDate}
-              </a>
-            </div>
-          </>
-        )}
-      </div>
+          <div className="text-xs text-[var(--muted)]">
+            <span className="mono">Source:</span>{' '}
+            <a href={source.url} target="_blank" rel="noopener" className="hover:text-[var(--accent-ink)]">
+              {source.form} · {source.filingDate}
+            </a>
+          </div>
+
+          <LastMileDelivery onCopy={copyAll} />
+        </>
+      )}
     </div>
   );
 }
@@ -175,8 +165,8 @@ function Section({
 }) {
   if (!items || items.length === 0) return null;
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
-      <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)] mb-2">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-5">
+      <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted-soft)] mb-2">
         {title}
       </div>
       <ul className="space-y-1.5">
@@ -184,12 +174,12 @@ function Section({
           <li
             key={i}
             className={cn(
-              'flex gap-2 text-sm leading-relaxed',
+              'flex gap-2 text-sm leading-relaxed text-[var(--fg-soft)]',
               mono && 'mono tabular',
               accent && 'text-[var(--fg)]'
             )}
           >
-            <span className={cn('shrink-0', accent ? 'text-accent' : 'text-[var(--muted)]')}>·</span>
+            <span className={cn('shrink-0', accent ? 'text-[var(--accent-ink)]' : 'text-[var(--muted-soft)]')}>·</span>
             <span>{item}</span>
           </li>
         ))}
