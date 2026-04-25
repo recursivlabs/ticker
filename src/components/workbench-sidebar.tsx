@@ -97,22 +97,38 @@ export function WorkbenchSidebar({ symbol, companyName }: { symbol: string; comp
         </div>
       </nav>
 
-      <div className="border-t border-[var(--border)] p-4">
-        <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted-soft)] mb-2">
+      <div className="border-t border-[var(--border)] p-3 space-y-0.5">
+        <div className="px-3 pb-1.5 text-[10px] font-mono uppercase tracking-wider text-[var(--muted-soft)]">
           Workflow
         </div>
         <Link
-          href={`/t/${symbol}/connect`}
-          className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-[var(--fg-soft)] hover:bg-[var(--border-soft)] transition-colors"
+          href={`/t/${symbol}/routines`}
+          className={cn(
+            'flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors',
+            pathname === `/t/${symbol}/routines`
+              ? 'bg-[var(--accent-soft)] text-[var(--accent-ink)] font-medium'
+              : 'text-[var(--fg-soft)] hover:bg-[var(--border-soft)]'
+          )}
         >
-          <span>Connections</span>
+          <span>Routines</span>
           <span className="text-[10px] rounded-full bg-[var(--border-soft)] px-2 py-0.5 text-[var(--muted)]">
             Manual
           </span>
         </Link>
-        <p className="mt-2 px-3 text-[10px] text-[var(--muted-soft)] leading-relaxed">
-          Connect tools to enable scheduled or autonomous routines per agent.
-        </p>
+        <Link
+          href={`/t/${symbol}/connect`}
+          className={cn(
+            'flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors',
+            pathname === `/t/${symbol}/connect`
+              ? 'bg-[var(--accent-soft)] text-[var(--accent-ink)] font-medium'
+              : 'text-[var(--fg-soft)] hover:bg-[var(--border-soft)]'
+          )}
+        >
+          <span>Connections</span>
+          <span className="text-[10px] rounded-full bg-[var(--border-soft)] px-2 py-0.5 text-[var(--muted)]">
+            None
+          </span>
+        </Link>
       </div>
 
       <div className="border-t border-[var(--border)] p-4 text-[10px] text-[var(--muted-soft)]">
