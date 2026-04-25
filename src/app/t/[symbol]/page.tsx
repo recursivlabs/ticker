@@ -153,7 +153,7 @@ function ConsensusTile({ hasData, symbol }: { hasData: boolean; symbol: string }
             href={`/t/${symbol}/connect`}
             className="mt-3 inline-block text-xs text-[var(--accent-ink)] hover:underline"
           >
-            Connect FactSet →
+            Wire up FactSet →
           </Link>
         </>
       )}
@@ -210,7 +210,7 @@ function CoverageTile({
             href={`/t/${symbol}/connect`}
             className="mt-3 inline-block text-xs text-[var(--accent-ink)] hover:underline"
           >
-            Connect FactSet →
+            Wire up FactSet →
           </Link>
         </>
       )}
@@ -400,8 +400,8 @@ function UpcomingEvents() {
         <Pill>FactSet</Pill>
       </div>
       <div className="text-sm text-[var(--muted-soft)]">
-        Earnings calls, conferences, NDRs, investor days. Connect FactSet to see your
-        company&rsquo;s and peers&rsquo; calendar in one place.
+        Earnings calls, conferences, NDRs, investor days. Wire up FactSet to fill this in, and
+        choose which routines trigger as events approach.
       </div>
     </div>
   );

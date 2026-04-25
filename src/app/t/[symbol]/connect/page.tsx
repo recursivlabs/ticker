@@ -39,10 +39,11 @@ export default async function ConnectPage({ params }: { params: { symbol: string
 
       <div className="text-center space-y-2 mb-10">
         <h1 className="text-3xl font-semibold tracking-tight text-[var(--fg)]">
-          Connect your tools
+          Wire up your IR workflow
         </h1>
-        <p className="text-base text-[var(--muted)] max-w-md mx-auto">
-          Data flows in. Work flows out. Both sides connect to tools you already use.
+        <p className="text-base text-[var(--muted)] max-w-lg mx-auto">
+          Bring your data sources and output destinations. Then choose how autonomous each routine
+          should be.
         </p>
       </div>
 
@@ -66,11 +67,18 @@ export default async function ConnectPage({ params }: { params: { symbol: string
           <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-white shrink-0 mono text-sm">
             i
           </span>
-          <div className="text-sm text-[var(--fg-soft)] leading-relaxed">
-            <span className="font-medium text-[var(--fg)]">Zero-touch ThinkCell.</span>{' '}
-            Connect OneDrive once. Every agent run updates a designated Excel file. Your
-            ThinkCell-bound PowerPoint deck refreshes the next time you open it. No copy-paste, no
-            re-rendering charts.
+          <div className="text-sm text-[var(--fg-soft)] leading-relaxed space-y-2">
+            <div>
+              <span className="font-medium text-[var(--fg)]">Pick your level of autonomy, per
+              routine.</span> Use Ticker as a manual workbench. Or schedule routines to run on
+              their own. Or trigger them on peer 8-Ks, analyst changes, or earnings T-7. Auto-publish
+              what you trust, queue the rest for review. You stay in control.
+            </div>
+            <div className="text-[var(--muted)]">
+              <span className="font-medium text-[var(--fg-soft)]">Zero-touch ThinkCell:</span>{' '}
+              connect OneDrive once. Every agent run updates a designated Excel file. Your
+              ThinkCell-bound deck refreshes the next time you open it.
+            </div>
           </div>
         </div>
       </div>
@@ -83,7 +91,7 @@ export default async function ConnectPage({ params }: { params: { symbol: string
           Open workbench →
         </Link>
         <p className="text-xs text-[var(--muted-soft)]">
-          You can connect tools anytime from the sidebar.
+          Skip for now. Connect anytime from the sidebar.
         </p>
       </div>
     </div>

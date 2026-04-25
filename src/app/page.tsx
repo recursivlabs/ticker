@@ -14,7 +14,7 @@ export default function HomePage() {
         <TickerSearch />
 
         <p className="mt-8 text-center text-sm text-[var(--muted)]">
-          The focused workbench for Investor Relations.
+          The IR workbench. As manual or autonomous as you want.
         </p>
         <p className="mt-1 text-center text-xs text-[var(--muted-soft)]">
           Enter your company&rsquo;s ticker to begin.

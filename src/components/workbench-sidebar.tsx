@@ -99,17 +99,20 @@ export function WorkbenchSidebar({ symbol, companyName }: { symbol: string; comp
 
       <div className="border-t border-[var(--border)] p-4">
         <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted-soft)] mb-2">
-          Connections
+          Workflow
         </div>
         <Link
           href={`/t/${symbol}/connect`}
           className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-[var(--fg-soft)] hover:bg-[var(--border-soft)] transition-colors"
         >
-          <span>Manage connections</span>
+          <span>Connections</span>
           <span className="text-[10px] rounded-full bg-[var(--border-soft)] px-2 py-0.5 text-[var(--muted)]">
-            None yet
+            Manual
           </span>
         </Link>
+        <p className="mt-2 px-3 text-[10px] text-[var(--muted-soft)] leading-relaxed">
+          Connect tools to enable scheduled or autonomous routines per agent.
+        </p>
       </div>
 
       <div className="border-t border-[var(--border)] p-4 text-[10px] text-[var(--muted-soft)]">
