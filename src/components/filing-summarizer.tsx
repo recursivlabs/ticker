@@ -60,7 +60,7 @@ export function FilingSummarizer({
             disabled={pending || !accession}
             className="w-full rounded-md bg-accent text-[var(--bg)] font-medium py-2 text-sm disabled:opacity-40 hover:bg-accent-hover transition-colors"
           >
-            {pending ? 'Summarizing...' : 'Summarize selected filing'}
+            {pending ? 'Summarizing' : 'Summarize'}
           </button>
           <div className="text-[10px] text-[var(--muted)] mono text-center">
             Powered by Recursiv

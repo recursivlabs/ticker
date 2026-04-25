@@ -139,7 +139,7 @@ export function ScriptWorkbench({
           disabled={pending || !quarter.trim() || !highlights.trim() || selected.size === 0}
           className="w-full rounded-lg bg-accent text-white font-medium py-2.5 text-sm disabled:opacity-40 hover:bg-accent-hover transition-colors"
         >
-          {pending ? 'Drafting script...' : 'Draft script'}
+          {pending ? 'Drafting' : 'Draft script'}
         </button>
 
         {error && (

@@ -162,7 +162,7 @@ export function QuoteWorkbench({
           disabled={pending || !topic.trim() || selected.size === 0}
           className="w-full rounded-md bg-accent text-[var(--bg)] font-medium py-2.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent-hover transition-colors"
         >
-          {pending ? 'Generating...' : 'Generate 5 drafts'}
+          {pending ? 'Generating' : 'Generate drafts'}
         </button>
 
         {error && (

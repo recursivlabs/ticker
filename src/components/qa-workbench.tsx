@@ -144,7 +144,7 @@ export function QaWorkbench({ symbol, sources }: { symbol: string; sources: Sour
           disabled={pending || !currentContext.trim() || selected.size === 0}
           className="w-full rounded-lg bg-accent text-white font-medium py-2.5 text-sm disabled:opacity-40 hover:bg-accent-hover transition-colors"
         >
-          {pending ? 'Preparing...' : 'Generate Q&A brief'}
+          {pending ? 'Preparing' : 'Generate brief'}
         </button>
 
         {error && (

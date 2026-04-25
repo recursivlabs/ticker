@@ -7,24 +7,19 @@ export const revalidate = 3600;
 const PROVIDERS = [
   {
     name: 'FactSet',
-    description: 'Consensus estimates, analyst ratings, historical transcripts, fundamentals',
-    gradient: 'from-blue-50 to-indigo-50',
-    primary: true,
+    description: 'Consensus, transcripts, fundamentals, ownership',
   },
   {
     name: 'S&P Global',
-    description: 'Capital IQ fundamentals, credit ratings, ownership data',
-    gradient: 'from-amber-50 to-orange-50',
+    description: 'Capital IQ fundamentals and ratings',
   },
   {
     name: 'Nasdaq IR Intelligence',
-    description: 'Shareholder targeting, peer surveillance, investor CRM',
-    gradient: 'from-cyan-50 to-sky-50',
+    description: 'Shareholder targeting and peer surveillance',
   },
   {
     name: 'Q4',
-    description: 'IR website, investor CRM, events platform',
-    gradient: 'from-violet-50 to-purple-50',
+    description: 'IR website, investor CRM, events',
   },
 ];
 
@@ -34,77 +29,85 @@ export default async function ConnectPage({ params }: { params: { symbol: string
   if (!company) notFound();
 
   return (
-    <div className="space-y-8 fade-in">
-      <div className="flex items-center gap-2 text-xs text-[var(--muted-soft)]">
-        <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-[var(--accent-soft)] text-[var(--accent-ink)] font-semibold">
-          ✓
-        </span>
-        <span>Ticker</span>
-        <span className="text-[var(--border)]">/</span>
-        <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-accent text-white font-semibold">
-          2
-        </span>
-        <span className="text-[var(--fg)] font-medium">Connect your tools</span>
-        <span className="text-[var(--border)]">/</span>
-        <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-[var(--border-soft)] text-[var(--muted-soft)]">
-          3
-        </span>
-        <span>Workbench</span>
+    <div className="max-w-2xl mx-auto py-8 fade-in">
+      <div className="flex items-center justify-center gap-2 mb-10 text-xs text-[var(--muted-soft)]">
+        <Step n={1} done label="Ticker" />
+        <Line />
+        <Step n={2} active label="Connect" />
+        <Line />
+        <Step n={3} label="Workbench" />
       </div>
 
-      <div>
+      <div className="text-center space-y-2 mb-10">
         <h1 className="text-3xl font-semibold tracking-tight text-[var(--fg)]">
-          Connect the tools you already use for {company.name}
+          Connect your tools
         </h1>
-        <p className="mt-2 text-base text-[var(--muted)] max-w-2xl leading-relaxed">
-          Ticker fences itself around your company&rsquo;s data. Log into your existing
-          entitlements and we&rsquo;ll use them securely to enrich every workflow. You can skip this
-          for now and add connections later.
+        <p className="text-base text-[var(--muted)] max-w-md mx-auto">
+          Bring your existing entitlements so the agents work on your real data.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] divide-y divide-[var(--border)] overflow-hidden shadow-sm">
         {PROVIDERS.map((p) => (
           <div
             key={p.name}
-            className={
-              'rounded-2xl border border-[var(--border)] bg-gradient-to-br ' +
-              p.gradient +
-              ' p-5 hover:shadow-md transition-all'
-            }
+            className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--border-soft)]/40 transition-colors"
           >
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="text-lg font-semibold text-[var(--fg)]">{p.name}</h3>
-              {p.primary && (
-                <span className="text-[10px] rounded-full bg-white/70 backdrop-blur-sm px-2 py-0.5 font-mono uppercase tracking-wider text-[var(--accent-ink)]">
-                  Recommended
-                </span>
-              )}
+            <div className="min-w-0">
+              <div className="text-base font-medium text-[var(--fg)]">{p.name}</div>
+              <div className="text-sm text-[var(--muted)] truncate">{p.description}</div>
             </div>
-            <p className="text-sm text-[var(--fg-soft)] leading-relaxed min-h-[40px]">
-              {p.description}
-            </p>
             <button
               disabled
-              className="mt-4 w-full rounded-lg bg-white/60 border border-white/50 backdrop-blur-sm py-2 text-sm font-medium text-[var(--fg-soft)] cursor-not-allowed"
+              className="shrink-0 rounded-lg bg-[var(--border-soft)] px-4 h-9 text-sm text-[var(--muted-soft)] font-medium cursor-not-allowed"
             >
-              Connect {p.name} · coming soon
+              Soon
             </button>
           </div>
         ))}
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
-        <p className="text-sm text-[var(--muted)]">
-          Don&rsquo;t have these yet? You can still use everything that works on public SEC data.
-        </p>
+      <div className="mt-10 flex flex-col items-center gap-3">
         <Link
           href={`/t/${symbol}`}
-          className="inline-flex items-center gap-2 rounded-lg bg-accent text-white font-medium px-5 py-2.5 text-sm hover:bg-accent-hover transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-accent text-white font-medium px-6 h-11 text-sm hover:bg-accent-hover transition-colors"
         >
-          Skip for now, open workbench →
+          Open workbench →
         </Link>
+        <p className="text-xs text-[var(--muted-soft)]">
+          You can connect tools anytime from the sidebar.
+        </p>
       </div>
     </div>
   );
+}
+
+function Step({ n, label, active, done }: { n: number; label: string; active?: boolean; done?: boolean }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span
+        className={
+          'inline-flex items-center justify-center h-5 w-5 rounded-full text-[10px] font-semibold ' +
+          (done
+            ? 'bg-[var(--accent-soft)] text-[var(--accent-ink)]'
+            : active
+              ? 'bg-accent text-white'
+              : 'bg-[var(--border-soft)] text-[var(--muted-soft)]')
+        }
+      >
+        {done ? '✓' : n}
+      </span>
+      <span
+        className={
+          active ? 'text-[var(--fg)] font-medium' : done ? 'text-[var(--fg-soft)]' : 'text-[var(--muted-soft)]'
+        }
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function Line() {
+  return <span className="w-6 h-px bg-[var(--border)]" />;
 }

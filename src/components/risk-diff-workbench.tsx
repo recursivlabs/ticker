@@ -80,7 +80,7 @@ export function RiskDiffWorkbench({
             disabled={pending || !currentAccession || !priorAccession || sameSelected}
             className="rounded-md bg-accent text-[var(--bg)] font-medium px-4 py-2 text-sm disabled:opacity-40 hover:bg-accent-hover transition-colors h-[38px]"
           >
-            {pending ? 'Analyzing...' : 'Analyze the diff'}
+            {pending ? 'Analyzing' : 'Analyze'}
           </button>
         </div>
         {sameSelected && (

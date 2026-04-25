@@ -141,7 +141,7 @@ export function ReleaseWorkbench({
           disabled={pending || !topic.trim() || selected.size === 0}
           className="w-full rounded-md bg-accent text-[var(--bg)] font-medium py-2.5 text-sm disabled:opacity-40 hover:bg-accent-hover transition-colors"
         >
-          {pending ? 'Drafting...' : 'Draft full release'}
+          {pending ? 'Drafting' : 'Draft release'}
         </button>
 
         {error && (

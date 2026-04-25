@@ -67,7 +67,7 @@ export function TickerSearch({ size = 'lg' }: { size?: 'lg' | 'sm' }) {
       <div
         className={cn(
           'flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] focus-within:border-accent/60 focus-within:ring-4 focus-within:ring-accent/10 transition-all',
-          isLarge ? 'px-4 h-[64px] shadow-md' : 'px-3 h-10'
+          isLarge ? 'pl-5 pr-2 h-[68px] shadow-md' : 'px-3 h-10'
         )}
       >
         <svg
@@ -118,13 +118,13 @@ export function TickerSearch({ size = 'lg' }: { size?: 'lg' | 'sm' }) {
             onClick={() => submit(suggestions[cursor]?.ticker ?? query)}
             disabled={!query.trim()}
             className={cn(
-              'rounded-lg font-medium px-4 h-10 text-sm transition-all shrink-0',
+              'rounded-lg font-medium h-12 px-5 text-sm transition-all shrink-0',
               query.trim()
                 ? 'bg-accent text-white hover:bg-accent-hover'
                 : 'bg-[var(--border-soft)] text-[var(--muted-soft)] cursor-not-allowed'
             )}
           >
-            Enter →
+            Enter
           </button>
         )}
       </div>
