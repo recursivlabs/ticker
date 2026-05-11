@@ -125,3 +125,164 @@ export async function listReleaseSources(symbol: string): Promise<Filing[]> {
   if (!company) return [];
   return filterFilings(company.filings, ['8-K'], 10);
 }
+
+// ============================================================================
+// REVERSE-ENGINEERING WORKFLOW
+//
+// Bryan's spec: user pastes a prior similar press release. The agent
+// recognizes the template (M&A, results, guidance update, etc.) and
+// asks targeted gap-filling questions. User fills the slots, agent
+// drafts a new release in the exact same shape.
+// ============================================================================
+
+export type ReleaseSlot = {
+  id: string;
+  question: string;
+  hint: string;
+  type: 'text' | 'number' | 'date' | 'longtext';
+};
+
+export type ReleaseTemplate = {
+  announcementType: string;
+  headlinePattern: string;
+  structureNotes: string;
+  slots: ReleaseSlot[];
+};
+
+export type AnalyzeResult =
+  | { ok: true; template: ReleaseTemplate }
+  | { ok: false; error: string };
+
+export async function analyzeReleaseTemplate(
+  symbol: string,
+  priorReleaseText: string
+): Promise<AnalyzeResult> {
+  try {
+    if (!hasRecursivKey()) return { ok: false, error: 'RECURSIV_API_KEY not configured' };
+    if (!AGENT_ID) return { ok: false, error: 'TICKER_RELEASE_AGENT_ID not configured' };
+
+    const company = await getCompanyByTicker(symbol);
+    if (!company) return { ok: false, error: `Ticker ${symbol} not found` };
+
+    if (priorReleaseText.trim().length < 200) {
+      return { ok: false, error: 'Paste the full prior press release (at least a few paragraphs).' };
+    }
+
+    const cleaned = priorReleaseText
+      .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, ' ')
+      .replace(/\s+\n/g, '\n')
+      .trim()
+      .slice(0, 8000);
+
+    const userMessage = `You are working with ${company.name} (${symbol}) in reverse-engineering mode. The user pasted a prior press release below. Your job:
+
+1. Identify the announcement TYPE (e.g., M&A acquisition, results release, guidance update, executive appointment, dividend, buyback authorization, product launch).
+2. Extract the structural pattern of the release (headline shape, body paragraph sequence, boilerplate position).
+3. Decide the targeted, minimal set of questions you need answered to draft a NEW release in the SAME shape for a NEW occurrence of this same type of announcement. Each question should be specific and varied (where, when, how much, who, why now, what's different) — not generic.
+
+[prior release text]
+${cleaned}
+[end prior release]
+
+Return ONLY valid JSON matching this exact shape:
+{
+  "announcementType": "string, the recognized announcement type",
+  "headlinePattern": "string, the pattern of how this company writes headlines for this kind of news",
+  "structureNotes": "string, 2-3 sentences on the body structure observed",
+  "slots": [
+    {"id": "string short id like 'targets'", "question": "string, the question to ask the user", "hint": "string, 1-line tip on what the prior release had here", "type": "text | number | date | longtext"}
+  ]
+}
+
+5-8 slots. Specific, not generic. No preamble, no markdown fences.`;
+
+    const r = getRecursiv();
+    const stream = await r.agents.chatStreamText(AGENT_ID, { message: userMessage });
+    const content = stream.content || '';
+    if (!content) return { ok: false, error: 'No response from release agent' };
+
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return { ok: false, error: 'Could not parse template extraction response' };
+
+    const parsed = JSON.parse(jsonMatch[0]) as ReleaseTemplate;
+    return { ok: true, template: parsed };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+export type DraftFromTemplateInput = {
+  symbol: string;
+  template: ReleaseTemplate;
+  answers: Record<string, string>;
+  priorReleaseText: string;
+};
+
+export async function draftFromTemplate(
+  input: DraftFromTemplateInput
+): Promise<ReleaseResult> {
+  try {
+    if (!hasRecursivKey()) return { ok: false, error: 'RECURSIV_API_KEY not configured' };
+    if (!AGENT_ID) return { ok: false, error: 'TICKER_RELEASE_AGENT_ID not configured' };
+
+    const company = await getCompanyByTicker(input.symbol);
+    if (!company) return { ok: false, error: `Ticker ${input.symbol} not found` };
+
+    const override = getOverride(input.symbol);
+    const ceoLabel =
+      override.ceo && override.ceo.title
+        ? `${override.ceo.name}, ${override.ceo.title}`
+        : override.ceo?.name ?? `${company.name} CEO`;
+    const hq = override.hq ?? '';
+
+    const cleaned = input.priorReleaseText
+      .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, ' ')
+      .replace(/\s+\n/g, '\n')
+      .trim()
+      .slice(0, 6000);
+
+    const answersBlock = input.template.slots
+      .map((s) => `${s.id} (${s.question}): ${input.answers[s.id] ?? '[not provided]'}`)
+      .join('\n');
+
+    const userMessage = `Draft a NEW press release for ${company.name} (${input.symbol}) using the prior release below as the structural and voice template.
+
+Announcement type: ${input.template.announcementType}
+Headline pattern: ${input.template.headlinePattern}
+Structure: ${input.template.structureNotes}
+
+HQ for dateline: ${hq || 'use a reasonable default for this company'}
+Quote attribution default: ${ceoLabel}
+
+User-provided answers to the template slots:
+${answersBlock}
+
+Use the prior release as the structural and tonal template. Match its voice exactly. Replace prior-specific details with the user's new answers above. Keep boilerplate close to verbatim if the user did not request changes.
+
+[prior release used as template]
+${cleaned}
+[end prior release]
+
+Return ONLY valid JSON matching the PressRelease schema:
+{"dateline":"string","headline":"string","subheadline":"string","body":["string"],"quote":{"text":"string","attributedTo":"string"},"boilerplate":"string","forwardLookingStatement":"string","sourcesUsed":["template"]}
+
+No preamble, no markdown fences.`;
+
+    const r = getRecursiv();
+    const stream = await r.agents.chatStreamText(AGENT_ID, { message: userMessage });
+    const content = stream.content || '';
+    if (!content) return { ok: false, error: 'No response from release agent' };
+
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return { ok: false, error: 'Could not parse drafted release response' };
+
+    const parsed = JSON.parse(jsonMatch[0]) as PressRelease;
+    return {
+      ok: true,
+      release: parsed,
+      citations: [{ label: 'Reverse-engineered from your prior release', url: '#' }],
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
