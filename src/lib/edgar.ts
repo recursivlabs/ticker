@@ -142,6 +142,69 @@ function stripHtml(html: string): string {
     .trim();
 }
 
+export type FilingExhibit = {
+  name: string;
+  description: string;
+  url: string;
+  type: string;
+};
+
+export async function getFilingExhibits(filing: Filing, cik: string): Promise<FilingExhibit[]> {
+  const padded = cik.padStart(10, '0');
+  const accessionDashless = filing.accessionNumber.replace(/-/g, '');
+  const indexUrl = `${SEC_BASE}/Archives/edgar/data/${parseInt(padded, 10)}/${accessionDashless}/${filing.accessionNumber}-index.htm`;
+  try {
+    const res = await secFetch(indexUrl, { headers: { Accept: 'text/html' } });
+    if (!res.ok) return [];
+    const html = await res.text();
+    const exhibits: FilingExhibit[] = [];
+    const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = rowRegex.exec(html)) !== null) {
+      const row = m[1];
+      const cells = Array.from(row.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)).map((c) =>
+        c[1].replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim()
+      );
+      const linkMatch = row.match(/href="([^"]+\.(?:htm|html|pdf|txt))"/i);
+      if (cells.length >= 3 && linkMatch) {
+        const href = linkMatch[1];
+        const fullUrl = href.startsWith('http')
+          ? href
+          : `${SEC_BASE}${href.startsWith('/') ? href : `/${href}`}`;
+        exhibits.push({
+          name: cells[2] || cells[1] || '',
+          description: cells[1] || '',
+          type: cells[3] || '',
+          url: fullUrl,
+        });
+      }
+    }
+    return exhibits;
+  } catch {
+    return [];
+  }
+}
+
+export function findEarningsPresentation(exhibits: FilingExhibit[]): FilingExhibit | null {
+  return (
+    exhibits.find((e) =>
+      /presentation|investor.*deck|slide|earnings.*slides/i.test(
+        `${e.name} ${e.description}`
+      )
+    ) ?? null
+  );
+}
+
+export function findEarningsPressRelease(exhibits: FilingExhibit[]): FilingExhibit | null {
+  return (
+    exhibits.find((e) =>
+      /press.*release|earnings.*release|99\.1/i.test(
+        `${e.name} ${e.description} ${e.type}`
+      )
+    ) ?? null
+  );
+}
+
 export function sicToPeerSet(sic: string): string[] {
   const PEER_MAP: Record<string, string[]> = {
     '5521': ['AN', 'KMX', 'LAD', 'SAH', 'GPI', 'ABG', 'PAG'],
