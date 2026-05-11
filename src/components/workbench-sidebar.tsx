@@ -24,6 +24,7 @@ export function WorkbenchSidebar({ symbol, companyName }: { symbol: string; comp
   }, [open]);
 
   const agents: { href: string; label: string }[] = [
+    { href: `${base}/transcript`, label: 'Transcript Summarizer' },
     { href: `${base}/quote`, label: 'CEO Quote' },
     { href: `${base}/release`, label: 'Press Release' },
     { href: `${base}/script`, label: 'Earnings Script' },
