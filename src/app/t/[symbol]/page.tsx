@@ -4,6 +4,7 @@ import { getCompanyByTicker, filterFilings, sicToPeerSet } from '@/lib/edgar';
 import { getOverride } from '@/lib/overrides';
 import { estimateNextEarnings, humanDate } from '@/lib/dates';
 import { EarningsCountdown } from '@/components/earnings-countdown';
+import { BoilerplateCard } from '@/components/boilerplate-editor';
 
 export const revalidate = 3600;
 
@@ -78,6 +79,9 @@ export default async function CompanyOverview({ params }: { params: { symbol: st
       {categories.length > 0 && (
         <FocusAreasCard symbol={symbol} categories={categories} companyName={company.name} />
       )}
+
+      {/* Boilerplate editor */}
+      <BoilerplateCard symbol={symbol} fallback={override.boilerplate ?? null} />
 
       {/* Leadership card (full management team) */}
       {(executives.length > 0 || ceo || cfo) && (

@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { summarizeTranscript, type TranscriptSummary } from '@/actions/transcript';
+import {
+  summarizeTranscript,
+  type Attachment,
+  type TranscriptSummary,
+} from '@/actions/transcript';
 import { LastMileDelivery } from '@/components/last-mile';
 import {
   AgentCard,
@@ -46,6 +50,8 @@ export function TranscriptWorkbench({
     quarter: string;
     callDate: string;
     categoriesUsed: string[];
+    attachments: Attachment[];
+    stockMove?: { last: number; changePct: number; formatted: string };
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -79,6 +85,8 @@ export function TranscriptWorkbench({
         quarter: res.meta.quarter,
         callDate: res.meta.callDate,
         categoriesUsed: res.meta.categoriesUsed,
+        attachments: res.meta.attachments ?? [],
+        stockMove: res.meta.stockMove,
       });
     });
   }
@@ -365,12 +373,27 @@ export function TranscriptWorkbench({
             <div className="border-t border-[var(--border)] pt-4 text-xs text-[var(--muted)]">
               <div className="mb-2 mono">— {companyName} IR briefing · auto-generated</div>
               <div className="space-y-1">
-                <div className="rounded-md border border-dashed border-[var(--border)] bg-[var(--bg-raised)]/60 px-3 py-2 text-[11px] text-[var(--muted-soft)]">
-                  📎 Attached: corrected transcript · {meta.quarter} · {meta.callDate || 'date TBD'}
-                </div>
-                <div className="rounded-md border border-dashed border-[var(--border)] bg-[var(--bg-raised)]/60 px-3 py-2 text-[11px] text-[var(--muted-soft)]">
-                  📎 Attached: earnings presentation (pulled from 8-K when wired)
-                </div>
+                {meta.attachments.length > 0 ? (
+                  meta.attachments.map((a) => (
+                    <a
+                      key={a.url}
+                      href={a.url}
+                      target="_blank"
+                      rel="noopener"
+                      className="block rounded-md border border-[var(--border)] bg-[var(--bg-raised)] px-3 py-2 text-[11px] text-[var(--fg-soft)] hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
+                    >
+                      <span className="mr-1">📎</span>
+                      {a.label}{' '}
+                      <span className="text-[var(--muted-soft)] mono">
+                        · {a.type === 'presentation' ? 'PRESENTATION' : a.type === 'press_release' ? 'PRESS RELEASE' : 'TRANSCRIPT'}
+                      </span>
+                    </a>
+                  ))
+                ) : (
+                  <div className="rounded-md border border-dashed border-[var(--border)] bg-[var(--bg-raised)]/60 px-3 py-2 text-[11px] text-[var(--muted-soft)]">
+                    📎 No 8-K exhibits found for the most recent filing.
+                  </div>
+                )}
               </div>
             </div>
           </article>

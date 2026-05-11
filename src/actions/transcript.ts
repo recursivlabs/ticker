@@ -1,8 +1,15 @@
 'use server';
 
 import { getRecursiv, hasRecursivKey } from '@/lib/recursiv';
-import { getCompanyByTicker } from '@/lib/edgar';
+import {
+  getCompanyByTicker,
+  filterFilings,
+  getFilingExhibits,
+  findEarningsPresentation,
+  findEarningsPressRelease,
+} from '@/lib/edgar';
 import { getOverride } from '@/lib/overrides';
+import { formatStockMove, getStockSnapshot } from '@/lib/stock-price';
 
 export type TranscriptInput = {
   symbol: string;
@@ -35,6 +42,12 @@ export type TranscriptSummary = {
   sentimentArc: string;
 };
 
+export type Attachment = {
+  label: string;
+  url: string;
+  type: 'presentation' | 'transcript' | 'press_release';
+};
+
 export type TranscriptResult =
   | {
       ok: true;
@@ -45,6 +58,12 @@ export type TranscriptResult =
         quarter: string;
         callDate: string;
         categoriesUsed: string[];
+        attachments: Attachment[];
+        stockMove?: {
+          last: number;
+          changePct: number;
+          formatted: string;
+        };
       };
     }
   | { ok: false; error: string };
@@ -85,7 +104,27 @@ export async function summarizeTranscript(input: TranscriptInput): Promise<Trans
       return { ok: false, error: 'Transcript is too short. Paste the full earnings call text.' };
     }
 
+    // Real-time enrichment: pull stock snapshot + most recent 8-K
+    // exhibits in parallel. Both are best-effort — failures don't
+    // block the summary.
+    const [stockSnap, recentExhibits] = await Promise.all([
+      getStockSnapshot(input.symbol),
+      (async () => {
+        const recent = filterFilings(company.filings, ['8-K'], 5);
+        if (recent.length === 0) return [];
+        const exhibits = await getFilingExhibits(recent[0], company.cik);
+        return exhibits;
+      })(),
+    ]);
+
+    const presentation = findEarningsPresentation(recentExhibits);
+    const pressRelease = findEarningsPressRelease(recentExhibits);
+    const stockMoveText = formatStockMove(stockSnap);
+
     const userMessage = `Summarize this earnings call transcript for ${company.name} (${input.symbol}), ${input.quarter}${input.callDate ? `, call date ${input.callDate}` : ''}.
+
+Today's stock movement context: ${stockMoveText}
+Use this directly in the stockMoveContext field — do not fabricate a different number.
 
 The user's focus categories for this company:
 ${categories.map((c, i) => `${i + 1}. ${c}`).join('\n')}
@@ -108,6 +147,22 @@ Return ONLY the JSON object as specified in your system instructions.`;
 
     const parsed = JSON.parse(jsonMatch[0]) as TranscriptSummary;
 
+    const attachments: Attachment[] = [];
+    if (presentation) {
+      attachments.push({
+        label: presentation.description || presentation.name || 'Earnings presentation',
+        url: presentation.url,
+        type: 'presentation',
+      });
+    }
+    if (pressRelease) {
+      attachments.push({
+        label: pressRelease.description || pressRelease.name || 'Earnings press release',
+        url: pressRelease.url,
+        type: 'press_release',
+      });
+    }
+
     return {
       ok: true,
       summary: parsed,
@@ -117,6 +172,14 @@ Return ONLY the JSON object as specified in your system instructions.`;
         quarter: input.quarter,
         callDate: input.callDate ?? '',
         categoriesUsed: categories,
+        attachments,
+        stockMove: stockSnap
+          ? {
+              last: stockSnap.last,
+              changePct: stockSnap.changePct,
+              formatted: stockMoveText,
+            }
+          : undefined,
       },
     };
   } catch (err) {

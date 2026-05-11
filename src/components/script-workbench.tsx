@@ -32,13 +32,23 @@ type SourceMini = {
 
 type Mode = 'scratch' | 'reuse';
 
+type ExecMini = {
+  id: string;
+  name: string;
+  title: string;
+  role: string;
+  speaksPublicly: boolean;
+};
+
 export function ScriptWorkbench({
   symbol,
   companyName,
+  executives,
   sources,
 }: {
   symbol: string;
   companyName: string;
+  executives: ExecMini[];
   sources: SourceMini[];
 }) {
   const [mode, setMode] = useState<Mode>('reuse');
@@ -65,7 +75,12 @@ export function ScriptWorkbench({
       {mode === 'reuse' ? (
         <ReuseMode symbol={symbol} companyName={companyName} />
       ) : (
-        <ScratchMode symbol={symbol} companyName={companyName} sources={sources} />
+        <ScratchMode
+          symbol={symbol}
+          companyName={companyName}
+          executives={executives}
+          sources={sources}
+        />
       )}
     </div>
   );
@@ -277,17 +292,34 @@ function ReuseMode({ symbol, companyName }: { symbol: string; companyName: strin
 function ScratchMode({
   symbol,
   companyName,
+  executives,
   sources,
 }: {
   symbol: string;
   companyName: string;
+  executives: ExecMini[];
   sources: SourceMini[];
 }) {
+  const defaultSpeakers = new Set(
+    executives
+      .filter((e) => e.role === 'ceo' || e.role === 'cfo')
+      .map((e) => e.id)
+  );
+  const [speakers, setSpeakers] = useState<Set<string>>(defaultSpeakers);
   const [quarter, setQuarter] = useState('');
   const [highlights, setHighlights] = useState('');
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(sources.slice(0, 3).map((s) => s.accession))
   );
+
+  function toggleSpeaker(id: string) {
+    setSpeakers((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
   const [showSources, setShowSources] = useState(false);
   const [script, setScript] = useState<EarningsScript | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -323,6 +355,59 @@ function ScratchMode({
   return (
     <div className="space-y-6">
       <AgentCard>
+        {executives.length > 0 && (
+          <Field
+            label="Speakers on the call"
+            hint={`${speakers.size} of ${executives.length} selected`}
+          >
+            <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+              {executives.map((e) => {
+                const active = speakers.has(e.id);
+                return (
+                  <button
+                    key={e.id}
+                    onClick={() => toggleSpeaker(e.id)}
+                    className={cn(
+                      'flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors',
+                      active
+                        ? 'border-[var(--accent-ink)] bg-[var(--accent-soft)]'
+                        : 'border-[var(--border)] bg-[var(--bg-raised)] hover:border-[var(--muted-soft)]'
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        'h-8 w-8 shrink-0 rounded-full flex items-center justify-center text-xs font-semibold',
+                        active
+                          ? 'bg-[var(--accent-ink)] text-white'
+                          : e.role === 'ceo'
+                            ? 'bg-[var(--accent-soft)] text-[var(--accent-ink)]'
+                            : 'bg-[var(--border-soft)] text-[var(--muted)]'
+                      )}
+                    >
+                      {e.name
+                        .split(' ')
+                        .slice(0, 2)
+                        .map((n) => n[0])
+                        .join('')}
+                    </div>
+                    <div className="min-w-0">
+                      <div
+                        className={cn(
+                          'text-sm font-medium truncate',
+                          active ? 'text-[var(--accent-ink)]' : 'text-[var(--fg)]'
+                        )}
+                      >
+                        {e.name}
+                      </div>
+                      <div className="text-[11px] text-[var(--muted)] truncate">{e.title}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+        )}
+
         <Field label="Quarter">
           <input
             value={quarter}

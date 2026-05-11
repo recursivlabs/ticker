@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getCompanyByTicker, filterFilings } from '@/lib/edgar';
+import { getOverride } from '@/lib/overrides';
 import { ScriptWorkbench } from '@/components/script-workbench';
 
 export const revalidate = 3600;
@@ -10,6 +11,8 @@ export default async function ScriptPage({ params }: { params: { symbol: string 
   if (!company) notFound();
 
   const sources = filterFilings(company.filings, ['8-K', '10-Q'], 10);
+  const override = getOverride(symbol);
+  const executives = override.executives ?? [];
 
   return (
     <div className="space-y-6 fade-in">
@@ -25,6 +28,7 @@ export default async function ScriptPage({ params }: { params: { symbol: string 
       <ScriptWorkbench
         symbol={symbol}
         companyName={company.name}
+        executives={executives}
         sources={sources.map((f) => ({
           accession: f.accessionNumber,
           form: f.form,
