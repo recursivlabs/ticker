@@ -143,7 +143,8 @@ Return ONLY the JSON object as specified in your system instructions.`;
     const content = stream.content || '';
     if (!content) return { ok: false, error: 'No response from transcript summarizer agent' };
 
-    const parsed = parseAgentJson<TranscriptSummary>(content);
+    const parsed = parseAgentJson<Partial<TranscriptSummary>>(content);
+    const summary = normalizeTranscriptSummary(parsed, categories);
 
     const attachments: Attachment[] = [];
     if (presentation) {
@@ -163,7 +164,7 @@ Return ONLY the JSON object as specified in your system instructions.`;
 
     return {
       ok: true,
-      summary: parsed,
+      summary,
       meta: {
         ticker: input.symbol.toUpperCase(),
         companyName: company.name,
@@ -183,4 +184,46 @@ Return ONLY the JSON object as specified in your system instructions.`;
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
+}
+
+// Guarantee the shape the UI assumes. Agents occasionally omit fields,
+// return null instead of [], or skip a category. Without this, the
+// render explodes on .map/.length of undefined.
+function normalizeTranscriptSummary(
+  parsed: Partial<TranscriptSummary>,
+  categoriesUsed: string[]
+): TranscriptSummary {
+  const cats = Array.isArray(parsed.categories) ? parsed.categories : [];
+  const normalizedCats: CategorySummary[] = categoriesUsed.map((name) => {
+    const match = cats.find(
+      (c) => typeof c?.category === 'string' && c.category.toLowerCase() === name.toLowerCase()
+    );
+    if (!match) {
+      return { category: name, bullets: [], bottomLine: '', notDiscussed: true };
+    }
+    return {
+      category: match.category || name,
+      bullets: Array.isArray(match.bullets) ? match.bullets.filter(Boolean) : [],
+      bottomLine: typeof match.bottomLine === 'string' ? match.bottomLine : '',
+      notDiscussed: Boolean(match.notDiscussed),
+    };
+  });
+
+  return {
+    headline: typeof parsed.headline === 'string' ? parsed.headline : '',
+    stockMoveContext:
+      typeof parsed.stockMoveContext === 'string' ? parsed.stockMoveContext : '',
+    greeting: typeof parsed.greeting === 'string' ? parsed.greeting : '',
+    categories: normalizedCats,
+    execHighlights: Array.isArray(parsed.execHighlights)
+      ? parsed.execHighlights.filter(
+          (e): e is ExecHighlight =>
+            !!e && typeof e.exec === 'string' && typeof e.quote === 'string'
+        )
+      : [],
+    qaThemes: Array.isArray(parsed.qaThemes)
+      ? parsed.qaThemes.filter((q): q is string => typeof q === 'string')
+      : [],
+    sentimentArc: typeof parsed.sentimentArc === 'string' ? parsed.sentimentArc : '',
+  };
 }
