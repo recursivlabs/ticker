@@ -4,6 +4,7 @@ import { getRecursiv, hasRecursivKey } from '@/lib/recursiv';
 import { getCompanyByTicker, filterFilings, fetchFilingText, type Filing } from '@/lib/edgar';
 import { getOverride } from '@/lib/overrides';
 import { getExecQuotes } from '@/lib/exec-profiles';
+import { parseAgentJson } from '@/lib/parse-json';
 
 export type QuoteContentType = 'quote' | 'release' | 'commentary';
 
@@ -158,12 +159,9 @@ Rules:
     const content = streamResult.content || '';
     if (!content) return { ok: false, error: 'No response from quote agent' };
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { ok: false, error: 'Could not parse quote agent response' };
-
-    const parsed = JSON.parse(jsonMatch[0]) as {
+    const parsed = parseAgentJson<{
       quotes: { quote: string; sourceAccessions?: string[] }[];
-    };
+    }>(content);
 
     const quotes: GeneratedQuote[] = parsed.quotes.map((q) => {
       const cits = (q.sourceAccessions ?? [])

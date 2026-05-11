@@ -8,6 +8,7 @@ import {
   type Filing,
 } from '@/lib/edgar';
 import { getOverride } from '@/lib/overrides';
+import { parseAgentJson } from '@/lib/parse-json';
 
 export type ReleaseInput = {
   symbol: string;
@@ -101,10 +102,7 @@ Return ONLY valid JSON matching your schema.`;
     const content = stream.content || '';
     if (!content) return { ok: false, error: 'No response from release agent' };
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { ok: false, error: 'Could not parse release agent response' };
-
-    const parsed = JSON.parse(jsonMatch[0]) as PressRelease;
+    const parsed = parseAgentJson<PressRelease>(content);
 
     const citations = (parsed.sourcesUsed ?? [])
       .map((acc) => {
@@ -201,10 +199,7 @@ Return ONLY valid JSON matching this exact shape:
     const content = stream.content || '';
     if (!content) return { ok: false, error: 'No response from release agent' };
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { ok: false, error: 'Could not parse template extraction response' };
-
-    const parsed = JSON.parse(jsonMatch[0]) as ReleaseTemplate;
+    const parsed = parseAgentJson<ReleaseTemplate>(content);
     return { ok: true, template: parsed };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
@@ -273,10 +268,7 @@ No preamble, no markdown fences.`;
     const content = stream.content || '';
     if (!content) return { ok: false, error: 'No response from release agent' };
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { ok: false, error: 'Could not parse drafted release response' };
-
-    const parsed = JSON.parse(jsonMatch[0]) as PressRelease;
+    const parsed = parseAgentJson<PressRelease>(content);
     return {
       ok: true,
       release: parsed,

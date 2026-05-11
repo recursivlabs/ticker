@@ -10,6 +10,7 @@ import {
 } from '@/lib/edgar';
 import { getOverride } from '@/lib/overrides';
 import { formatStockMove, getStockSnapshot } from '@/lib/stock-price';
+import { parseAgentJson } from '@/lib/parse-json';
 
 export type TranscriptInput = {
   symbol: string;
@@ -142,10 +143,7 @@ Return ONLY the JSON object as specified in your system instructions.`;
     const content = stream.content || '';
     if (!content) return { ok: false, error: 'No response from transcript summarizer agent' };
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { ok: false, error: 'Could not parse transcript summarizer response' };
-
-    const parsed = JSON.parse(jsonMatch[0]) as TranscriptSummary;
+    const parsed = parseAgentJson<TranscriptSummary>(content);
 
     const attachments: Attachment[] = [];
     if (presentation) {

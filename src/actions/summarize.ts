@@ -2,6 +2,7 @@
 
 import { getRecursiv, hasRecursivKey } from '@/lib/recursiv';
 import { getCompanyByTicker, fetchFilingText } from '@/lib/edgar';
+import { parseAgentJson } from '@/lib/parse-json';
 
 export type SummarizeInput = {
   symbol: string;
@@ -59,10 +60,7 @@ Return ONLY the JSON object as specified in your system instructions.`;
     const content = stream.content || '';
     if (!content) return { ok: false, error: 'No response from summarizer agent' };
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { ok: false, error: 'Could not parse summarizer response' };
-
-    const parsed = JSON.parse(jsonMatch[0]) as FilingSummary;
+    const parsed = parseAgentJson<FilingSummary>(content);
 
     return {
       ok: true,

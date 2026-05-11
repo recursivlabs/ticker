@@ -3,6 +3,7 @@
 import { getRecursiv, hasRecursivKey } from '@/lib/recursiv';
 import { getCompanyByTicker, filterFilings, fetchFilingText } from '@/lib/edgar';
 import { getOverride } from '@/lib/overrides';
+import { parseAgentJson } from '@/lib/parse-json';
 
 export type QaInput = {
   symbol: string;
@@ -98,13 +99,10 @@ Return ONLY valid JSON matching your schema. Generate 10-15 questions.`;
     const content = stream.content || '';
     if (!content) return { ok: false, error: 'No response from Q&A agent' };
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { ok: false, error: 'Could not parse Q&A agent response' };
-
-    const parsed = JSON.parse(jsonMatch[0]) as {
+    const parsed = parseAgentJson<{
       questions: QaQuestion[];
       topThreeToRehearse: string[];
-    };
+    }>(content);
 
     const citations = toUse.map((f) => ({
       label: `${f.form} · ${f.filingDate}`,

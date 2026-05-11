@@ -3,6 +3,7 @@
 import { getRecursiv, hasRecursivKey } from '@/lib/recursiv';
 import { getCompanyByTicker, filterFilings, fetchFilingText } from '@/lib/edgar';
 import { getOverride } from '@/lib/overrides';
+import { parseAgentJson } from '@/lib/parse-json';
 
 export type ScriptInput = {
   symbol: string;
@@ -91,10 +92,7 @@ Return ONLY valid JSON matching your schema.`;
     const content = stream.content || '';
     if (!content) return { ok: false, error: 'No response from script agent' };
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { ok: false, error: 'Could not parse script agent response' };
-
-    const parsed = JSON.parse(jsonMatch[0]) as EarningsScript;
+    const parsed = parseAgentJson<EarningsScript>(content);
 
     const citations = (parsed.sourcesUsed ?? [])
       .map((acc) => {
@@ -173,10 +171,7 @@ Return ONLY valid JSON matching this exact shape:
     const content = stream.content || '';
     if (!content) return { ok: false, error: 'No response from script agent' };
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { ok: false, error: 'Could not parse metric extraction response' };
-
-    const parsed = JSON.parse(jsonMatch[0]) as { metrics: ScriptMetric[] };
+    const parsed = parseAgentJson<{ metrics: ScriptMetric[] }>(content);
     return { ok: true, metrics: parsed.metrics ?? [] };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
@@ -236,10 +231,7 @@ Rules:
     const content = stream.content || '';
     if (!content) return { ok: false, error: 'No response from script agent' };
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { ok: false, error: 'Could not parse reuse-script response' };
-
-    const parsed = JSON.parse(jsonMatch[0]) as EarningsScript;
+    const parsed = parseAgentJson<EarningsScript>(content);
     return {
       ok: true,
       script: parsed,
