@@ -36,6 +36,8 @@ export default async function CompanyOverview({ params }: { params: { symbol: st
   const cfo = override.cfo;
   const peers = override.peers ?? sicToPeerSet(company.sic).filter((t) => t !== symbol);
   const coverage = override.analystCoverage ?? [];
+  const categories = override.categories ?? [];
+  const executives = override.executives ?? [];
 
   return (
     <div className="space-y-6 fade-in">
@@ -71,30 +73,25 @@ export default async function CompanyOverview({ params }: { params: { symbol: st
         <CoverageTile coverage={coverage} symbol={symbol} />
       </div>
 
-      {/* Leadership card */}
-      {(ceo || cfo) && (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted-soft)]">
-                Leadership voice
-              </div>
-              <div className="mt-0.5 text-sm text-[var(--muted)]">
-                Draft quotes, scripts, and Q&A in their actual voice.
-              </div>
-            </div>
-            <Link
-              href={`/t/${symbol}/quote`}
-              className="text-xs rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 inline-flex items-center hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
-            >
-              Draft a quote →
-            </Link>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {ceo && <ExecChip name={ceo.name} title={ceo.title ?? 'CEO'} accent />}
-            {cfo && <ExecChip name={cfo.name} title={cfo.title ?? 'CFO'} />}
-          </div>
-        </div>
+      {/* Focus Areas — the IRO-specific business taxonomy that fences
+          every downstream agent run around this company's actual buckets. */}
+      {categories.length > 0 && (
+        <FocusAreasCard symbol={symbol} categories={categories} companyName={company.name} />
+      )}
+
+      {/* Leadership card (full management team) */}
+      {(executives.length > 0 || ceo || cfo) && (
+        <LeadershipCard
+          symbol={symbol}
+          executives={
+            executives.length > 0
+              ? executives
+              : [
+                  ...(ceo ? [{ id: 'ceo', name: ceo.name, title: ceo.title ?? 'CEO', role: 'ceo' as const, speaksPublicly: true }] : []),
+                  ...(cfo ? [{ id: 'cfo', name: cfo.name, title: cfo.title ?? 'CFO', role: 'cfo' as const, speaksPublicly: true }] : []),
+                ]
+          }
+        />
       )}
 
       {/* Recent activity + Peers */}
@@ -260,12 +257,110 @@ function Sparkline({ trend }: { trend: 'up' | 'down' | 'flat' }) {
   );
 }
 
-function ExecChip({ name, title, accent }: { name: string; title: string; accent?: boolean }) {
-  const initials = name
+function FocusAreasCard({
+  symbol,
+  categories,
+  companyName,
+}: {
+  symbol: string;
+  categories: string[];
+  companyName: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm">
+      <div className="flex items-start justify-between mb-3 gap-3 flex-wrap">
+        <div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted-soft)]">
+            Focus areas
+          </div>
+          <div className="mt-0.5 text-sm text-[var(--muted)]">
+            How {companyName} thinks about its business. Every agent run
+            organizes output by these.
+          </div>
+        </div>
+        <Link
+          href={`/t/${symbol}/transcript`}
+          className="text-xs rounded-lg bg-accent text-white px-3 h-8 inline-flex items-center font-medium hover:bg-accent-hover transition-colors"
+        >
+          Summarize earnings →
+        </Link>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {categories.map((c, i) => (
+          <span
+            key={c}
+            className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-soft)] text-[var(--accent-ink)] px-3 py-1 text-xs font-medium"
+          >
+            <span className="mono text-[10px] text-[var(--accent-ink)]/60">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            {c}
+          </span>
+        ))}
+      </div>
+      <div className="mt-3 text-[11px] text-[var(--muted-soft)]">
+        Edit categories anytime · saved locally today, cloud-synced when sign-in is wired
+      </div>
+    </div>
+  );
+}
+
+function LeadershipCard({
+  symbol,
+  executives,
+}: {
+  symbol: string;
+  executives: { id: string; name: string; title: string; role: string; speaksPublicly: boolean }[];
+}) {
+  return (
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm">
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+        <div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted-soft)]">
+            Leadership voice
+          </div>
+          <div className="mt-0.5 text-sm text-[var(--muted)]">
+            Each speaker has their own voice profile. Drafts use only their actual past quotes.
+          </div>
+        </div>
+        <Link
+          href={`/t/${symbol}/quote`}
+          className="text-xs rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 inline-flex items-center hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
+        >
+          Draft a quote →
+        </Link>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {executives.map((e) => (
+          <ExecChip key={e.id} exec={e} accent={e.role === 'ceo'} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ExecChip({
+  exec,
+  accent,
+}: {
+  exec: { name: string; title: string; role: string };
+  accent?: boolean;
+}) {
+  const initials = exec.name
     .split(' ')
     .slice(0, 2)
     .map((n) => n[0])
     .join('');
+  const roleLabel =
+    exec.role === 'ceo'
+      ? 'CEO'
+      : exec.role === 'cfo'
+        ? 'CFO'
+        : exec.role === 'ir'
+          ? 'IR'
+          : exec.role === 'coo'
+            ? 'COO'
+            : null;
   return (
     <div className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg-raised)] p-3">
       <div
@@ -278,9 +373,16 @@ function ExecChip({ name, title, accent }: { name: string; title: string; accent
       >
         {initials}
       </div>
-      <div className="min-w-0">
-        <div className="text-sm font-medium text-[var(--fg)] truncate">{name}</div>
-        <div className="text-xs text-[var(--muted)]">{title}</div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-medium text-[var(--fg)] truncate">{exec.name}</span>
+          {roleLabel && (
+            <span className="text-[9px] mono uppercase tracking-wider rounded bg-[var(--border-soft)] px-1 py-0.5 text-[var(--muted)] shrink-0">
+              {roleLabel}
+            </span>
+          )}
+        </div>
+        <div className="text-xs text-[var(--muted)] truncate">{exec.title}</div>
       </div>
     </div>
   );
