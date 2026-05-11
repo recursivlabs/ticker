@@ -124,11 +124,11 @@ export function TranscriptWorkbench({
     navigator.clipboard.writeText(lines.join('\n'));
   }
 
-  async function downloadDocx() {
+  async function downloadDoc(format: 'docx' | 'pdf') {
     if (!result || !meta) return;
     setDownloading(true);
     try {
-      const res = await fetch('/api/transcript/docx', {
+      const res = await fetch(`/api/transcript/${format}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -138,7 +138,7 @@ export function TranscriptWorkbench({
       });
       if (!res.ok) {
         const text = await res.text();
-        setError(`Word export failed: ${text}`);
+        setError(`${format.toUpperCase()} export failed: ${text}`);
         return;
       }
       const blob = await res.blob();
@@ -146,7 +146,7 @@ export function TranscriptWorkbench({
       const a = document.createElement('a');
       a.href = url;
       const safeQuarter = (meta.quarter || 'briefing').replace(/[^a-z0-9-]+/gi, '-');
-      a.download = `${symbol}-${safeQuarter}-briefing.docx`;
+      a.download = `${symbol}-${safeQuarter}-briefing.${format}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -278,21 +278,20 @@ export function TranscriptWorkbench({
             <div className="flex items-center gap-2 flex-wrap">
               <DistributionListPill symbol={symbol} onClick={() => setShowRecipients(true)} />
               <button
-                onClick={downloadDocx}
+                onClick={() => downloadDoc('docx')}
                 disabled={downloading}
                 className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 text-xs text-[var(--fg-soft)] hover:border-accent/40 hover:text-[var(--accent-ink)] disabled:opacity-50 transition-colors"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="h-3.5 w-3.5"
-                >
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                  <path d="M14 2v6h6" />
-                </svg>
-                {downloading ? 'Building...' : 'Download Word'}
+                <DocIcon />
+                Word
+              </button>
+              <button
+                onClick={() => downloadDoc('pdf')}
+                disabled={downloading}
+                className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 text-xs text-[var(--fg-soft)] hover:border-accent/40 hover:text-[var(--accent-ink)] disabled:opacity-50 transition-colors"
+              >
+                <PdfIcon />
+                {downloading ? 'Building...' : 'PDF'}
               </button>
               <button
                 onClick={copyEmail}
@@ -446,5 +445,25 @@ function CategoryBlock({
         Bottom line: {cat.bottomLine}
       </div>
     </div>
+  );
+}
+
+function DocIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-3.5 w-3.5">
+      <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 13h6M9 17h4" />
+    </svg>
+  );
+}
+
+function PdfIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-3.5 w-3.5">
+      <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 14h1.5a1.5 1.5 0 0 1 0 3H9v-3Zm0 0v4m4-4h2m-2 0v4m0-2h1.5m2-2h2m-2 0v4" />
+    </svg>
   );
 }

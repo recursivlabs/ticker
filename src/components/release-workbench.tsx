@@ -185,20 +185,18 @@ function LinearMode({
           {citations.length > 0 && <CitationChips citations={citations} />}
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => downloadReleaseDocx(release, symbol, companyName)}
+              onClick={() => downloadRelease(release, symbol, companyName, 'docx')}
               className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 text-xs text-[var(--fg-soft)] hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
             >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="h-3.5 w-3.5"
-              >
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                <path d="M14 2v6h6" />
-              </svg>
-              Download Word
+              <DocIcon />
+              Word
+            </button>
+            <button
+              onClick={() => downloadRelease(release, symbol, companyName, 'pdf')}
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 text-xs text-[var(--fg-soft)] hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
+            >
+              <PdfIcon />
+              PDF
             </button>
             <button
               onClick={() => copyRelease(release)}
@@ -367,20 +365,18 @@ function ReverseMode({ symbol, companyName }: { symbol: string; companyName: str
           </div>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => downloadReleaseDocx(release, symbol, companyName)}
+              onClick={() => downloadRelease(release, symbol, companyName, 'docx')}
               className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 text-xs text-[var(--fg-soft)] hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
             >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="h-3.5 w-3.5"
-              >
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                <path d="M14 2v6h6" />
-              </svg>
-              Download Word
+              <DocIcon />
+              Word
+            </button>
+            <button
+              onClick={() => downloadRelease(release, symbol, companyName, 'pdf')}
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 text-xs text-[var(--fg-soft)] hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
+            >
+              <PdfIcon />
+              PDF
             </button>
             <button
               onClick={() => copyRelease(release)}
@@ -459,9 +455,14 @@ function CitationChips({ citations }: { citations: { label: string; url: string 
   );
 }
 
-async function downloadReleaseDocx(release: PressRelease, ticker: string, companyName: string) {
+async function downloadRelease(
+  release: PressRelease,
+  ticker: string,
+  companyName: string,
+  format: 'docx' | 'pdf'
+) {
   try {
-    const res = await fetch('/api/release/docx', {
+    const res = await fetch(`/api/release/${format}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ release, meta: { ticker, companyName } }),
@@ -471,7 +472,7 @@ async function downloadReleaseDocx(release: PressRelease, ticker: string, compan
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${ticker}-press-release.docx`;
+    a.download = `${ticker}-press-release.${format}`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -479,6 +480,26 @@ async function downloadReleaseDocx(release: PressRelease, ticker: string, compan
   } catch {
     // ignore
   }
+}
+
+function DocIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-3.5 w-3.5">
+      <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 13h6M9 17h4" />
+    </svg>
+  );
+}
+
+function PdfIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-3.5 w-3.5">
+      <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 14h1.5a1.5 1.5 0 0 1 0 3H9v-3Zm0 0v4m4-4h2m-2 0v4m0-2h1.5m2-2h2m-2 0v4" />
+    </svg>
+  );
 }
 
 function copyRelease(release: PressRelease) {
