@@ -67,6 +67,17 @@ export function WorkbenchSidebar({ symbol, companyName }: { symbol: string; comp
           >
             Overview
           </Link>
+          <Link
+            href={`${base}/people`}
+            className={cn(
+              'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors',
+              pathname === `${base}/people` || pathname.startsWith(`${base}/people/`)
+                ? 'bg-[var(--accent-soft)] text-[var(--accent-ink)] font-medium'
+                : 'text-[var(--fg-soft)] hover:bg-[var(--border-soft)]'
+            )}
+          >
+            Leadership
+          </Link>
         </div>
 
         <div>

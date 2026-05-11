@@ -324,15 +324,21 @@ function LeadershipCard({
           </div>
         </div>
         <Link
-          href={`/t/${symbol}/quote`}
+          href={`/t/${symbol}/people`}
           className="text-xs rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 inline-flex items-center hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
         >
-          Draft a quote →
+          View all profiles →
         </Link>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {executives.map((e) => (
-          <ExecChip key={e.id} exec={e} accent={e.role === 'ceo'} />
+          <Link
+            key={e.id}
+            href={`/t/${symbol}/people/${e.id}`}
+            className="block hover:scale-[1.01] transition-transform"
+          >
+            <ExecChip exec={e} accent={e.role === 'ceo'} />
+          </Link>
         ))}
       </div>
     </div>
