@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getCompanyByTicker, filterFilings } from '@/lib/edgar';
 import { ReleaseWorkbench } from '@/components/release-workbench';
@@ -13,29 +12,21 @@ export default async function ReleasePage({ params }: { params: { symbol: string
   const pressReleases = filterFilings(company.filings, ['8-K'], 10);
 
   return (
-    <div className="space-y-5 py-4">
-      <div className="flex items-center gap-3 text-sm">
-        <Link href={`/t/${symbol}`} className="text-[var(--muted)] hover:text-[var(--fg)]">
-          ← {symbol}
-        </Link>
-        <span className="text-[var(--muted)]">/</span>
-        <span>Press Release Drafter</span>
-      </div>
-
+    <div className="space-y-6 fade-in">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Press Release Drafter · <span className="text-accent">{symbol}</span>
-          <span className="text-[var(--muted)] text-base font-normal ml-2">
-            {company.name}
-          </span>
+        <h1 className="text-3xl font-semibold tracking-tight text-[var(--fg)]">
+          Press Release Drafter
         </h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">
-          Full press release in your company&rsquo;s voice, trained on your prior releases.
+        <p className="mt-2 text-base text-[var(--muted)] max-w-2xl leading-relaxed">
+          Full press release in your company&rsquo;s voice. Two paths: start from a topic and your
+          prior releases set the voice, or paste a prior release and the agent extracts the
+          template + asks targeted fill-in questions.
         </p>
       </div>
 
       <ReleaseWorkbench
         symbol={symbol}
+        companyName={company.name}
         filings={pressReleases.map((f) => ({
           accession: f.accessionNumber,
           form: f.form,

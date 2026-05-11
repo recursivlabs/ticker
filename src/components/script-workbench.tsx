@@ -34,9 +34,11 @@ type Mode = 'scratch' | 'reuse';
 
 export function ScriptWorkbench({
   symbol,
+  companyName,
   sources,
 }: {
   symbol: string;
+  companyName: string;
   sources: SourceMini[];
 }) {
   const [mode, setMode] = useState<Mode>('reuse');
@@ -61,9 +63,9 @@ export function ScriptWorkbench({
       </div>
 
       {mode === 'reuse' ? (
-        <ReuseMode symbol={symbol} />
+        <ReuseMode symbol={symbol} companyName={companyName} />
       ) : (
-        <ScratchMode symbol={symbol} sources={sources} />
+        <ScratchMode symbol={symbol} companyName={companyName} sources={sources} />
       )}
     </div>
   );
@@ -100,7 +102,7 @@ function ModeButton({
 // Reuse + delta mode (Bryan's preferred path)
 // ============================================================================
 
-function ReuseMode({ symbol }: { symbol: string }) {
+function ReuseMode({ symbol, companyName }: { symbol: string; companyName: string }) {
   const [priorScript, setPriorScript] = useState('');
   const [quarter, setQuarter] = useState('');
   const [metrics, setMetrics] = useState<ScriptMetric[]>([]);
@@ -243,6 +245,24 @@ function ReuseMode({ symbol }: { symbol: string }) {
           <div className="rounded-lg border border-[var(--accent-ink)]/30 bg-[var(--accent-soft)]/50 p-3 text-xs text-[var(--accent-ink)]">
             Reused your prior script. Same structure and voice. New values substituted in.
           </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => downloadScriptDocx(script, symbol, companyName, quarter)}
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 text-xs text-[var(--fg-soft)] hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="h-3.5 w-3.5"
+              >
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <path d="M14 2v6h6" />
+              </svg>
+              Download Word
+            </button>
+          </div>
           <LastMileDelivery onCopy={() => copyScript(script)} />
         </>
       )}
@@ -256,9 +276,11 @@ function ReuseMode({ symbol }: { symbol: string }) {
 
 function ScratchMode({
   symbol,
+  companyName,
   sources,
 }: {
   symbol: string;
+  companyName: string;
   sources: SourceMini[];
 }) {
   const [quarter, setQuarter] = useState('');
@@ -346,6 +368,24 @@ function ScratchMode({
         <>
           <SectionHeader title="Earnings call script" />
           <ScriptArticle script={script} />
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => downloadScriptDocx(script, symbol, companyName, quarter)}
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 text-xs text-[var(--fg-soft)] hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="h-3.5 w-3.5"
+              >
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <path d="M14 2v6h6" />
+              </svg>
+              Download Word
+            </button>
+          </div>
           <LastMileDelivery onCopy={() => copyScript(script)} />
         </>
       )}
@@ -428,6 +468,37 @@ function ScriptSection({
       </div>
     </div>
   );
+}
+
+async function downloadScriptDocx(
+  script: EarningsScript,
+  ticker: string,
+  companyName: string,
+  quarter: string
+) {
+  try {
+    const res = await fetch('/api/script/docx', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        script,
+        meta: { ticker, companyName, quarter: quarter || 'Earnings' },
+      }),
+    });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const safeQuarter = (quarter || 'briefing').replace(/[^a-z0-9-]+/gi, '-');
+    a.download = `${ticker}-${safeQuarter}-script.docx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch {
+    // ignore
+  }
 }
 
 function copyScript(script: EarningsScript) {

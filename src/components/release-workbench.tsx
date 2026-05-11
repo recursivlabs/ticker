@@ -34,9 +34,11 @@ type Mode = 'linear' | 'reverse';
 
 export function ReleaseWorkbench({
   symbol,
+  companyName,
   filings,
 }: {
   symbol: string;
+  companyName: string;
   filings: FilingMini[];
 }) {
   const [mode, setMode] = useState<Mode>('linear');
@@ -61,9 +63,9 @@ export function ReleaseWorkbench({
       </div>
 
       {mode === 'linear' ? (
-        <LinearMode symbol={symbol} filings={filings} />
+        <LinearMode symbol={symbol} companyName={companyName} filings={filings} />
       ) : (
-        <ReverseMode symbol={symbol} />
+        <ReverseMode symbol={symbol} companyName={companyName} />
       )}
     </div>
   );
@@ -102,9 +104,11 @@ function ModeButton({
 
 function LinearMode({
   symbol,
+  companyName,
   filings,
 }: {
   symbol: string;
+  companyName: string;
   filings: FilingMini[];
 }) {
   const [topic, setTopic] = useState('');
@@ -179,6 +183,30 @@ function LinearMode({
           <SectionHeader title="Generated release" />
           <ReleaseArticle release={release} />
           {citations.length > 0 && <CitationChips citations={citations} />}
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => downloadReleaseDocx(release, symbol, companyName)}
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 text-xs text-[var(--fg-soft)] hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="h-3.5 w-3.5"
+              >
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <path d="M14 2v6h6" />
+              </svg>
+              Download Word
+            </button>
+            <button
+              onClick={() => copyRelease(release)}
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 text-xs text-[var(--fg-soft)] hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
+            >
+              Copy text
+            </button>
+          </div>
           <LastMileDelivery onCopy={() => copyRelease(release)} />
         </>
       )}
@@ -190,7 +218,7 @@ function LinearMode({
 // Reverse mode (new)
 // ============================================================================
 
-function ReverseMode({ symbol }: { symbol: string }) {
+function ReverseMode({ symbol, companyName }: { symbol: string; companyName: string }) {
   const [priorText, setPriorText] = useState('');
   const [template, setTemplate] = useState<ReleaseTemplate | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -337,6 +365,30 @@ function ReverseMode({ symbol }: { symbol: string }) {
             Drafted in the same shape as the prior release you pasted, with your new variables
             substituted in.
           </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => downloadReleaseDocx(release, symbol, companyName)}
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 text-xs text-[var(--fg-soft)] hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="h-3.5 w-3.5"
+              >
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <path d="M14 2v6h6" />
+              </svg>
+              Download Word
+            </button>
+            <button
+              onClick={() => copyRelease(release)}
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3 h-8 text-xs text-[var(--fg-soft)] hover:border-accent/40 hover:text-[var(--accent-ink)] transition-colors"
+            >
+              Copy text
+            </button>
+          </div>
           <LastMileDelivery onCopy={() => copyRelease(release)} />
         </>
       )}
@@ -405,6 +457,28 @@ function CitationChips({ citations }: { citations: { label: string; url: string 
       ))}
     </div>
   );
+}
+
+async function downloadReleaseDocx(release: PressRelease, ticker: string, companyName: string) {
+  try {
+    const res = await fetch('/api/release/docx', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ release, meta: { ticker, companyName } }),
+    });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${ticker}-press-release.docx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch {
+    // ignore
+  }
 }
 
 function copyRelease(release: PressRelease) {

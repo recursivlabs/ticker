@@ -24,6 +24,7 @@ export default async function ScriptPage({ params }: { params: { symbol: string 
 
       <ScriptWorkbench
         symbol={symbol}
+        companyName={company.name}
         sources={sources.map((f) => ({
           accession: f.accessionNumber,
           form: f.form,
