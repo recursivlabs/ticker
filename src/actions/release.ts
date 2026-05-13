@@ -98,7 +98,11 @@ ${corpus}
 Return ONLY valid JSON matching your schema.`;
 
     const r = getRecursiv();
-    const stream = await r.agents.chatStreamText(AGENT_ID, { message: userMessage });
+    let stream = await r.agents.chatStreamText(AGENT_ID, { message: userMessage });
+    if (!stream.content) {
+      // Gemini cold-start can return an empty stream once. Retry once.
+      stream = await r.agents.chatStreamText(AGENT_ID, { message: userMessage });
+    }
     const content = stream.content || '';
     if (!content) return { ok: false, error: 'No response from release agent' };
 
@@ -195,7 +199,10 @@ Return ONLY valid JSON matching this exact shape:
 5-8 slots. Specific, not generic. No preamble, no markdown fences.`;
 
     const r = getRecursiv();
-    const stream = await r.agents.chatStreamText(AGENT_ID, { message: userMessage });
+    let stream = await r.agents.chatStreamText(AGENT_ID, { message: userMessage });
+    if (!stream.content) {
+      stream = await r.agents.chatStreamText(AGENT_ID, { message: userMessage });
+    }
     const content = stream.content || '';
     if (!content) return { ok: false, error: 'No response from release agent' };
 
@@ -264,7 +271,10 @@ Return ONLY valid JSON matching the PressRelease schema:
 No preamble, no markdown fences.`;
 
     const r = getRecursiv();
-    const stream = await r.agents.chatStreamText(AGENT_ID, { message: userMessage });
+    let stream = await r.agents.chatStreamText(AGENT_ID, { message: userMessage });
+    if (!stream.content) {
+      stream = await r.agents.chatStreamText(AGENT_ID, { message: userMessage });
+    }
     const content = stream.content || '';
     if (!content) return { ok: false, error: 'No response from release agent' };
 
